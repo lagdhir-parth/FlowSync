@@ -1,0 +1,41 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const requiredEnvVars = [
+  "PORT",
+  "MONGODB_URI",
+  "DB_NAME",
+  "ALLOWED_ORIGINS",
+  "ACCESS_TOKEN_SECRET",
+  "ACCESS_TOKEN_EXPIRY",
+  "REFRESH_TOKEN_SECRET",
+  "REFRESH_TOKEN_EXPIRY  ",
+];
+
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+});
+
+if (isNaN(process.env.PORT)) {
+  console.error("❌ PORT must be a number");
+  process.exit(1);
+}
+
+const env = {
+  PORT: process.env.PORT,
+  MONGODB_URI: process.env.MONGODB_URI,
+  DB_NAME: process.env.DB_NAME,
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS.split(",").map((origin) =>
+    origin.trim()
+  ),
+  ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY,
+};
+
+export default env;
