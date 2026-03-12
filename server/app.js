@@ -34,6 +34,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+// Routes
+import authRouter from "./src/routes/auth.routes.js";
+import userRouter from "./src/routes/user.routes.js";
+import taskRouter from "./src/routes/task.routes.js";
+import projectRouter from "./src/routes/project.routes.js";
+import workspaceRouter from "./src/routes/workspace.routes.js";
+
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
+app.use("/api/tasks", taskRouter);
+app.use("/api/projects", projectRouter);
+app.use("/api/workspaces", workspaceRouter);
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("❌ Global error:", err.stack || err.message);

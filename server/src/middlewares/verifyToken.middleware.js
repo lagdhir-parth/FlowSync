@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import env from "../config/env.js";
 
-const verifyJWT = asyncHandler(async (req, res, next) => {
+const verifyToken = asyncHandler(async (req, res, next) => {
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
@@ -37,4 +37,4 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
   }
 });
 
-export default verifyJWT;
+export default verifyToken;

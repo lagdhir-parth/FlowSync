@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import ApiError from "../utils/apiError.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,33 +23,36 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
+      required: true,
+    },
     avatarUrl: {
       type: String,
     },
-    avatarUrlPublicId: {
-      type: String,
-    },
-    workspace: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Workspace",
-    },
+    workspaces: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Workspace",
+      },
+    ],
     refreshToken: {
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
   } catch (error) {
     console.error("Error hashing password:", error);
-    next(error);
+    throw new ApiError(500, "Error hashing password");
   }
 });
 
@@ -62,7 +68,7 @@ userSchema.methods.generateAccessToken = function () {
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    }
+    },
   );
 };
 
@@ -74,7 +80,7 @@ userSchema.methods.generateRefreshToken = function () {
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-    }
+    },
   );
 };
 

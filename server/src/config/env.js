@@ -10,7 +10,7 @@ const requiredEnvVars = [
   "ACCESS_TOKEN_SECRET",
   "ACCESS_TOKEN_EXPIRY",
   "REFRESH_TOKEN_SECRET",
-  "REFRESH_TOKEN_EXPIRY  ",
+  "REFRESH_TOKEN_EXPIRY",
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -30,7 +30,7 @@ const env = {
   MONGODB_URI: process.env.MONGODB_URI,
   DB_NAME: process.env.DB_NAME,
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS.split(",").map((origin) =>
-    origin.trim()
+    origin.trim(),
   ),
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY,

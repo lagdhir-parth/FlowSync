@@ -1,7 +1,7 @@
 import ApiError from "./apiError.js";
 import User from "../models/user.model.js";
 
-const generateAccessTokenAndRefreshToken = async (userID) => {
+const generateTokens = async (userID) => {
   try {
     const user = await User.findById(userID);
     const accessToken = user.generateAccessToken();
@@ -15,4 +15,4 @@ const generateAccessTokenAndRefreshToken = async (userID) => {
   }
 };
 
-export default generateAccessTokenAndRefreshToken;
+export default generateTokens;
