@@ -12,6 +12,7 @@ const taskSchema = new mongoose.Schema(
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
+      required: true,
     },
     assignee: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,11 +22,13 @@ const taskSchema = new mongoose.Schema(
       type: String,
       enum: ["low", "medium", "high"],
       default: "medium",
+      required: true,
     },
     status: {
       type: String,
       enum: ["todo", "in progress", "review", "done"],
       default: "todo",
+      required: true,
     },
     deadline: {
       type: Date,
@@ -45,9 +48,10 @@ const taskSchema = new mongoose.Schema(
     order: {
       type: Number,
       default: 0,
+      required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Task = mongoose.model("Task", taskSchema);

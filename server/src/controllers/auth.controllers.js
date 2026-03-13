@@ -26,7 +26,7 @@ const registerUser = asyncHandler(async (req, res) => {
       400,
       `User with this ${
         userExists.username === username.toLowerCase() ? "username" : "email"
-      } already exists`
+      } already exists`,
     );
   }
 
@@ -41,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken",
   );
 
   if (!createdUser) {
@@ -83,7 +83,7 @@ const loginUser = asyncHandler(async (req, res) => {
         accessToken,
         refreshToken,
         loggedInUser,
-      })
+      }),
     );
 });
 
@@ -96,10 +96,10 @@ const logoutUser = asyncHandler(async (req, res) => {
     {
       new: true,
       runValidators: false,
-    }
+    },
   );
 
-  res
+  return res
     .status(200)
     .clearCookie("accessToken", cookieOptions)
     .clearCookie("refreshToken", cookieOptions)
@@ -111,7 +111,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   const decodedtoken = jwt.verify(
     incomingRefreshToken,
-    env.REFRESH_TOKEN_SECRET
+    env.REFRESH_TOKEN_SECRET,
   );
 
   const user = await User.findById(decodedtoken?._id);
@@ -131,7 +131,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       new ApiResponse(200, "Access token refreshed successfully", {
         accessToken,
         refreshToken,
-      })
+      }),
     );
 });
 

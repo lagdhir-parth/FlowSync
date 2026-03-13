@@ -16,7 +16,7 @@ const createProject = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Workspace not found");
   }
 
-  if (!workspace.members.includes(userId)) {
+  if (!workspace.members.some((member) => member.equals(userId))) {
     throw new ApiError(
       403,
       "You must be a member of the workspace to create a project",
@@ -49,8 +49,9 @@ const getAllProjects = asyncHandler(async (req, res) => {
     members: userId,
   })
     .populate("members", "name email")
-    // .populate("tasks") FIXME: populate tasks
+    // .populate("tasks")
     .lean();
+  // FIXME: populate tasks
 
   res
     .status(200)
@@ -63,8 +64,9 @@ const getProjectById = asyncHandler(async (req, res) => {
 
   const project = await Project.findOne({ _id: projectId, members: userId })
     .populate("members", "name email")
-    // .populate("tasks") FIXME: populate tasks
+    // .populate("tasks")
     .lean();
+  // FIXME: populate tasks
 
   if (!project) {
     res.status(404);
@@ -196,17 +198,11 @@ const deleteProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params || {};
   const userId = req.user._id;
 
-  const project = await Project.findOneAndDelete({
-    _id: projectId,
-    projectManager: userId,
-  });
+  const project = await Project.findById(projectId);
 
   if (!project) {
     res.status(404);
-    throw new ApiError(
-      404,
-      "Project not found or you are not the project manager",
-    );
+    throw new ApiError(404, "Project not found");
   }
 
   const workspace = await Workspace.findByIdAndUpdate(
@@ -220,6 +216,16 @@ const deleteProject = asyncHandler(async (req, res) => {
   if (!workspace) {
     res.status(404);
     throw new ApiError(404, "Workspace not found");
+  }
+
+  if (project.projectManager.equals(userId) || workspace.owner.equals(userId)) {
+    await Project.findByIdAndDelete(projectId);
+  } else {
+    res.status(403);
+    throw new ApiError(
+      403,
+      "Only the project manager or workspace owner can delete the project",
+    );
   }
 
   res
