@@ -9,6 +9,10 @@ const projectSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    projectManager: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     workspace: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Workspace",
@@ -32,7 +36,7 @@ const projectSchema = new mongoose.Schema(
       default: "active",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Project = mongoose.model("Project", projectSchema);

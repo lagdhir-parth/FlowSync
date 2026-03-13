@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import User from "../models/user.model.js";
 import Workspace from "../models/workspace.model.js";
+import Project from "../models/project.model.js";
 
 const createWorkspace = asyncHandler(async (req, res) => {
   const { name } = req.body || {};
@@ -133,6 +134,66 @@ const inviteMember = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, newWorkspace, "Member invited successfully"));
 });
 
+const removeMember = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { email } = req.body || {};
+  const userId = req.user._id;
+
+  const userToRemove = await User.findOneAndUpdate(
+    { email },
+    { $pull: { workspaces: id } },
+    { new: true, validateBeforeSave: false },
+  );
+
+  if (!userToRemove) {
+    res.status(404);
+    throw new ApiError(404, "User not found");
+  }
+
+  const workspace = await Workspace.findOne({
+    _id: id,
+    members: userId,
+  });
+
+  if (!workspace) {
+    res.status(404);
+    throw new ApiError(404, "Workspace not found");
+  }
+
+  if (!workspace.owner.equals(userId)) {
+    res.status(403);
+    throw new ApiError(
+      403,
+      "Only the workspace owner can remove members from the workspace",
+    );
+  }
+
+  if (!workspace.members.some((member) => member.equals(userToRemove._id))) {
+    res.status(400);
+    throw new ApiError(400, "User is not a member of the workspace");
+  }
+
+  await Project.updateMany(
+    {
+      workspace: workspace._id,
+      members: userToRemove._id,
+    },
+    {
+      $pull: { members: userToRemove._id },
+    },
+  );
+
+  const newWorkspace = await Workspace.findByIdAndUpdate(
+    workspace._id,
+    { $pull: { members: userToRemove._id } },
+    { new: true, validateBeforeSave: false },
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, newWorkspace, "Member removed successfully"));
+});
+
 const deleteWorkspace = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
@@ -166,5 +227,6 @@ export {
   getWorkspaceById,
   updateWorkspace,
   inviteMember,
+  removeMember,
   deleteWorkspace,
 };

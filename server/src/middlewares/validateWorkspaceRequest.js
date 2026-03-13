@@ -43,7 +43,7 @@ const validateUpdateWorkspace = (req, res, next) => {
   next();
 };
 
-const validateInviteMember = (req, res, next) => {
+const validateUpdateMember = (req, res, next) => {
   const { id } = req.params;
   const { email } = req.body || {};
 
@@ -77,6 +77,6 @@ export {
   validateCreateWorkspace,
   validateGetWorkspaceById,
   validateUpdateWorkspace,
-  validateInviteMember,
+  validateUpdateMember,
   validateDeleteWorkspace,
 };
