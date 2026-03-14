@@ -1,1 +1,226 @@
 @import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #07090f;
+    color: #e5e7eb;
+    font-family: "Sora", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #07090f;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e2535;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6366f1;
+  }
+}
+
+@layer utilities {
+  /* ── Glass surfaces ────────────────────────────────── */
+  .glass {
+    background: rgba(13, 17, 28, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 102, 241, 0.11);
+  }
+  .glass-light {
+    background: rgba(99, 102, 241, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+  }
+
+  /* ── Auth input glass ──────────────────────────────── */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.25s ease;
+  }
+  .glass-input:focus {
+    background: rgba(99, 102, 241, 0.05);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow:
+      0 0 0 3px rgba(99, 102, 241, 0.1),
+      0 0 20px rgba(99, 102, 241, 0.08);
+    outline: none;
+  }
+  .glass-input:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* ── Select glass ──────────────────────────────────── */
+  .select-glass {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all 0.25s ease;
+  }
+  .select-glass:focus {
+    background: rgba(99, 102, 241, 0.05);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+  }
+  .select-glass option {
+    background: #131720;
+    color: #e5e7eb;
+  }
+
+  /* ── Primary button ────────────────────────────────── */
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    transition: all 0.3s ease;
+  }
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .btn-primary:hover::before {
+    opacity: 1;
+  }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #6366f1);
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 0.3s ease;
+  }
+  .btn-primary:hover::after {
+    opacity: 0.6;
+  }
+
+  /* ── Text gradients ────────────────────────────────── */
+  .text-gradient {
+    background: linear-gradient(135deg, #e5e7eb 0%, #818cf8 50%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-green {
+    background: linear-gradient(135deg, #34d399 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      #818cf8 0%,
+      #e5e7eb 25%,
+      #a78bfa 50%,
+      #e5e7eb 75%,
+      #818cf8 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+
+  /* ── Grid / glow helpers ───────────────────────────── */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .glow-indigo {
+    box-shadow:
+      0 0 40px rgba(99, 102, 241, 0.25),
+      0 0 80px rgba(99, 102, 241, 0.1);
+  }
+  .glow-emerald {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+  }
+
+  /* ── Card glow (auth) ──────────────────────────────── */
+  .card-glow {
+    box-shadow:
+      0 0 0 1px rgba(99, 102, 241, 0.12),
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 32px 80px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* ── Auth input label ──────────────────────────────── */
+  .input-wrapper {
+    position: relative;
+  }
+  .input-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    display: block;
+    transition: color 0.2s;
+  }
+  .input-wrapper:focus-within .input-label {
+    color: #818cf8;
+  }
+
+  /* ── Error shake ───────────────────────────────────── */
+  .error-shake {
+    animation: shake 0.4s ease;
+  }
+
+  /* ── Noise overlay ─────────────────────────────────── */
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
