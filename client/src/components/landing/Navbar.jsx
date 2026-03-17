@@ -5,6 +5,7 @@ import { HiMenuAlt3, HiX } from "react-icons/hi";
 import { TbBolt } from "react-icons/tb";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { useAuth } from "../../context/AuthContext.jsx";
+import UserAvatar from "../UserAvatar.jsx";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -71,20 +72,7 @@ export default function Navbar() {
                     className="relative px-4 py-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 flex items-center rounded-lg hover:bg-white/5 group overflow-hidden"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt="avatar"
-                        className="size-8 rounded-full object-cover z-10"
-                      />
-                    ) : (
-                      <div className="size-8 bg-indigo-500 border-2 border-gray-400 rounded-full z-10 flex items-center justify-center text-xs font-bold text-white">
-                        {user.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("") || user.username?.charAt(0)}
-                      </div>
-                    )}
+                    <UserAvatar user={user} />
                     <button className="flex justify-center items-center group-hover:text-white transition-colors duration-200">
                       <RiArrowDropDownLine className="size-8 text-[#9CA3AF] group-hover:text-white transition-colors duration-200" />
                     </button>
@@ -104,10 +92,10 @@ export default function Navbar() {
                       <hr className="self-center w-95/100 border-t border-[#3a4151] my-2" />
 
                       <Link
-                        to="/profile"
+                        to="/app"
                         className="block px-4 py-2 text-sm text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all duration-200"
                       >
-                        Profile
+                        Dashboard
                       </Link>
                       <Link
                         to="/settings"
@@ -189,7 +177,7 @@ export default function Navbar() {
                 <>
                   <hr className="border-t border-[#1E2535] mt-2" />
                   <Link
-                    to="/dashboard"
+                    to="/app"
                     onClick={() => setMobileOpen(false)}
                     className="px-4 py-3 text-sm text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                   >

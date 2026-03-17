@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbUser, TbLock, TbArrowRight, TbSparkles } from "react-icons/tb";
 import AuthLayout from "../components/auth/AuthLayout";
@@ -30,6 +30,7 @@ export default function Login() {
   const [success, setSuccess] = useState(false);
   const { loginUser } = useAuth();
 
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -48,8 +49,10 @@ export default function Login() {
     try {
       await loginUser(form);
       setSuccess(true);
+
+      const from = location.state?.from?.pathname || "/app";
       setTimeout(() => {
-        navigate("/app");
+        navigate(from, { replace: true });
       }, 800);
     } catch (err) {
       setError(err.message);

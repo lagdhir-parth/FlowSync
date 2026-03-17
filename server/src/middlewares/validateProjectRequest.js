@@ -17,7 +17,7 @@ const validateCreateProject = (req, res, next) => {
   next();
 };
 
-const validateGetAllProjects = (req, res, next) => {
+const validateGetProjectsByWorkspace = (req, res, next) => {
   const { workspaceId } = req.params || {};
 
   if (!workspaceId || !mongoose.Types.ObjectId.isValid(workspaceId)) {
@@ -39,9 +39,7 @@ const validateGetProjectById = (req, res, next) => {
   next();
 };
 
-const validateUpdateProject = (req, res, next) => {
-  const updateData = req.body;
-  const allowedUpdates = ["name", "description", "status"];
+const validateGetProjectMembers = (req, res, next) => {
   const { projectId } = req.params || {};
 
   if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
@@ -49,31 +47,51 @@ const validateUpdateProject = (req, res, next) => {
     throw new ApiError(400, "Valid projectId is required");
   }
 
-  if (!updateData || Object.keys(updateData).length === 0) {
+  next();
+};
+
+const validateUpdateProject = (req, res, next) => {
+  const updateData = req.body || {};
+  const { projectId } = req.params || {};
+
+  const allowedUpdates = ["name", "description", "status"];
+  const validStatus = ["active", "completed", "archived", "on hold", "dropped"];
+
+  // Validate projectId
+  if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+    res.status(400);
+    throw new ApiError(400, "Valid projectId is required");
+  }
+
+  // Ensure something to update
+  if (Object.keys(updateData).length === 0) {
     res.status(400);
     throw new ApiError(400, "Please provide data to update");
   }
 
-  // Validate update fields
+  // Check allowed fields
   const updates = Object.keys(updateData);
-  const isValidOperation = updates.every(
-    (update) => allowedUpdates.includes(update) && updateData[update] !== "",
+  const isValidOperation = updates.every((field) =>
+    allowedUpdates.includes(field),
   );
 
-  if (
-    updateData.status &&
-    !["active", "completed", "archived", "on hold", "dropped"].includes(
-      updateData.status,
-    )
-  ) {
+  if (!isValidOperation) {
+    res.status(400);
+    throw new ApiError(400, "Invalid update fields");
+  }
+
+  // Name validation (if provided)
+  if ("name" in updateData && updateData.name.trim() === "") {
+    res.status(400);
+    throw new ApiError(400, "Project name cannot be empty");
+  }
+
+  // Status validation (if provided)
+  if ("status" in updateData && !validStatus.includes(updateData.status)) {
     res.status(400);
     throw new ApiError(400, "Invalid status value");
   }
 
-  if (!isValidOperation) {
-    res.status(400);
-    throw new ApiError(400, "Invalid updates!");
-  }
   next();
 };
 
@@ -106,8 +124,9 @@ const validateDeleteProject = (req, res, next) => {
 
 export {
   validateCreateProject,
-  validateGetAllProjects,
+  validateGetProjectsByWorkspace,
   validateGetProjectById,
+  validateGetProjectMembers,
   validateUpdateProject,
   validateUpdateMembers,
   validateDeleteProject,

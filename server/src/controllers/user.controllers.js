@@ -81,7 +81,7 @@ const updatePassword = asyncHandler(async (req, res) => {
   }
 
   user.password = newPassword;
-  user.refreshToken = null; // FIXME: Invalidate all existing sessions by clearing refresh token
+  user.refreshToken = null;
   await user.save({ validateBeforeSave: false });
 
   return res

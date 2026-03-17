@@ -3,7 +3,9 @@ import verifyTokens from "../middlewares/verifyToken.middleware.js";
 import {
   createProject,
   getAllProjects,
+  getProjectsByWorkspace,
   getProjectById,
+  getProjectMembers,
   updateProject,
   inviteMembers,
   removeMember,
@@ -11,8 +13,9 @@ import {
 } from "../controllers/project.controllers.js";
 import {
   validateCreateProject,
-  validateGetAllProjects,
+  validateGetProjectsByWorkspace,
   validateGetProjectById,
+  validateGetProjectMembers,
   validateUpdateProject,
   validateUpdateMembers,
   validateDeleteProject,
@@ -26,7 +29,18 @@ router.post(
   validateCreateProject,
   createProject,
 );
-router.get("/:workspaceId/all", validateGetAllProjects, getAllProjects);
+router.get("/", verifyTokens, getAllProjects);
+router.get(
+  "/:workspaceId/all",
+  validateGetProjectsByWorkspace,
+  getProjectsByWorkspace,
+);
+router.get(
+  "/:projectId/members",
+  verifyTokens,
+  validateGetProjectMembers,
+  getProjectMembers,
+);
 router.get("/:projectId", verifyTokens, validateGetProjectById, getProjectById);
 router.patch("/:projectId", verifyTokens, validateUpdateProject, updateProject);
 router.patch(

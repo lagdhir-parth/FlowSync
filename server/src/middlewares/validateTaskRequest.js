@@ -7,12 +7,12 @@ import Project from "../models/project.model.js";
 import Workspace from "../models/workspace.model.js";
 
 const validateCreateTask = asyncHandler(async (req, res, next) => {
-  const { title, projectId, assigneeId, priority, status, deadline } =
+  const { name, title, projectId, assigneeId, priority, status, deadline } =
     req.body || {};
   const userId = req.user._id;
 
   // Validate required fields
-  if (!title || !projectId || !priority || !status) {
+  if (!(name || title) || !projectId || !priority || !status) {
     throw new ApiError(400, "Please fill all required fields");
   }
 
@@ -64,7 +64,7 @@ const validateCreateTask = asyncHandler(async (req, res, next) => {
   next();
 });
 
-const validateGetTasks = asyncHandler(async (req, res, next) => {
+const validateGetTasksByProject = asyncHandler(async (req, res, next) => {
   const { projectId } = req.params;
   const userId = req.user._id;
 
@@ -104,6 +104,7 @@ const validateUpdateTask = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
   const updates = req.body;
   const allowedUpdates = [
+    "name",
     "title",
     "description",
     "assignee",
@@ -344,8 +345,9 @@ const validateDeleteTask = asyncHandler(async (req, res, next) => {
   }
 
   if (
-    !project.projectManager.equals(req.user._id) &&
-    !workspace.owner.equals(req.user._id)
+    !task.createdBy.equals(userId) &&
+    !project.projectManager.equals(userId) &&
+    !workspace.owner.equals(userId)
   ) {
     res.status(403);
     throw new ApiError(
@@ -359,7 +361,7 @@ const validateDeleteTask = asyncHandler(async (req, res, next) => {
 
 export {
   validateCreateTask,
-  validateGetTasks,
+  validateGetTasksByProject,
   validateGetTaskById,
   validateUpdateTask,
   validateAddComment,

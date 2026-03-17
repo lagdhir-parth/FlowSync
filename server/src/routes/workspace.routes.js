@@ -4,6 +4,7 @@ import {
   createWorkspace,
   getAllWorkspaces,
   getWorkspaceById,
+  getWorkspaceMembers,
   updateWorkspace,
   inviteMember,
   removeMember,
@@ -12,6 +13,7 @@ import {
 import {
   validateCreateWorkspace,
   validateGetWorkspaceById,
+  validateGetWorkspaceMembers,
   validateUpdateWorkspace,
   validateUpdateMember,
   validateDeleteWorkspace,
@@ -22,6 +24,12 @@ const router = Router();
 router.post("/", verifyToken, validateCreateWorkspace, createWorkspace);
 router.get("/", verifyToken, getAllWorkspaces);
 router.get("/:id", verifyToken, validateGetWorkspaceById, getWorkspaceById);
+router.get(
+  "/:id/members",
+  verifyToken,
+  validateGetWorkspaceMembers,
+  getWorkspaceMembers,
+);
 router.patch("/:id", verifyToken, validateUpdateWorkspace, updateWorkspace);
 router.patch("/:id/invite", verifyToken, validateUpdateMember, inviteMember);
 router.patch(

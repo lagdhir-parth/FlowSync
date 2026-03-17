@@ -21,7 +21,7 @@ const createWorkspace = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, workspace, "Workspace created successfully"));
+    .json(new ApiResponse(201, "Workspace created successfully", workspace));
 });
 
 const getAllWorkspaces = asyncHandler(async (req, res) => {
@@ -34,7 +34,7 @@ const getAllWorkspaces = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, workspaces, "Workspaces retrieved successfully"),
+      new ApiResponse(200, "Workspaces retrieved successfully", workspaces),
     );
 });
 
@@ -56,7 +56,34 @@ const getWorkspaceById = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, workspace, "Workspace retrieved successfully"));
+    .json(new ApiResponse(200, "Workspace retrieved successfully", workspace));
+});
+
+const getWorkspaceMembers = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+
+  const workspace = await Workspace.findOne({
+    _id: id,
+    members: userId,
+  })
+    .populate("members", "name email")
+    .lean();
+
+  if (!workspace) {
+    res.status(404);
+    throw new ApiError(404, "Workspace not found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "Workspace members retrieved successfully",
+        workspace.members,
+      ),
+    );
 });
 
 const updateWorkspace = asyncHandler(async (req, res) => {
@@ -87,7 +114,7 @@ const updateWorkspace = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, workspace, "Workspace updated successfully"));
+    .json(new ApiResponse(200, "Workspace updated successfully", workspace));
 });
 
 const inviteMember = asyncHandler(async (req, res) => {
@@ -131,7 +158,7 @@ const inviteMember = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, newWorkspace, "Member invited successfully"));
+    .json(new ApiResponse(200, "Member invited successfully", newWorkspace));
 });
 
 const removeMember = asyncHandler(async (req, res) => {
@@ -191,7 +218,7 @@ const removeMember = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, newWorkspace, "Member removed successfully"));
+    .json(new ApiResponse(200, "Member removed successfully", newWorkspace));
 });
 
 const deleteWorkspace = asyncHandler(async (req, res) => {
@@ -214,17 +241,19 @@ const deleteWorkspace = asyncHandler(async (req, res) => {
   }
 
   await User.updateMany({ workspaces: id }, { $pull: { workspaces: id } });
+  await Project.deleteMany({ workspace: id });
   await Workspace.findByIdAndDelete(id);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Workspace deleted successfully"));
+    .json(new ApiResponse(200, "Workspace deleted successfully", null));
 });
 
 export {
   createWorkspace,
   getAllWorkspaces,
   getWorkspaceById,
+  getWorkspaceMembers,
   updateWorkspace,
   inviteMember,
   removeMember,

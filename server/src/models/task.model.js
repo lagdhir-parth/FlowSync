@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
       required: true,
     },
@@ -12,6 +12,11 @@ const taskSchema = new mongoose.Schema(
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
+      required: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     assignee: {
@@ -61,7 +66,7 @@ export default Task;
 // TODO: Add subtasks as a separate collection with reference to parent task for better scalability and querying.
 // subtasks: [
 //   {
-//     title: {
+//     name: {
 //       type: String,
 //       required: true,
 //     },

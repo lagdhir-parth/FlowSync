@@ -2,8 +2,9 @@ import { Router } from "express";
 import verifyToken from "../middlewares/verifyToken.middleware.js";
 import {
   createTask,
+  getAllTasks,
   getTaskById,
-  getTasks,
+  getTasksByProject,
   updateTask,
   deleteTask,
   addComment,
@@ -12,7 +13,7 @@ import {
 } from "../controllers/task.controllers.js";
 import {
   validateCreateTask,
-  validateGetTasks,
+  validateGetTasksByProject,
   validateGetTaskById,
   validateUpdateTask,
   validateAddComment,
@@ -24,8 +25,14 @@ import {
 const router = Router();
 
 router.post("/", verifyToken, validateCreateTask, createTask);
+router.get("/", verifyToken, getAllTasks);
 router.get("/:taskId", verifyToken, validateGetTaskById, getTaskById);
-router.get("/project/:projectId", verifyToken, validateGetTasks, getTasks);
+router.get(
+  "/project/:projectId",
+  verifyToken,
+  validateGetTasksByProject,
+  getTasksByProject,
+);
 router.patch("/:taskId", verifyToken, validateUpdateTask, updateTask);
 router.patch(
   "/:projectId/reorder",
@@ -41,7 +48,7 @@ router.delete(
   removeComment,
 );
 router.delete(
-  "/:projectId/tasks/:taskId",
+  "/:projectId/delete-task/:taskId",
   verifyToken,
   validateDeleteTask,
   deleteTask,

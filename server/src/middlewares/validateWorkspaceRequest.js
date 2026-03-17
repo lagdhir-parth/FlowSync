@@ -23,6 +23,21 @@ const validateGetWorkspaceById = (req, res, next) => {
   next();
 };
 
+const validateGetWorkspaceMembers = (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id) {
+    res.status(400);
+    throw new ApiError(400, "Workspace ID is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400);
+    throw new ApiError(400, "Invalid workspace ID");
+  }
+  next();
+};
+
 const validateUpdateWorkspace = (req, res, next) => {
   const { id } = req.params;
   const { name } = req.body || {};
@@ -76,6 +91,7 @@ const validateDeleteWorkspace = (req, res, next) => {
 export {
   validateCreateWorkspace,
   validateGetWorkspaceById,
+  validateGetWorkspaceMembers,
   validateUpdateWorkspace,
   validateUpdateMember,
   validateDeleteWorkspace,

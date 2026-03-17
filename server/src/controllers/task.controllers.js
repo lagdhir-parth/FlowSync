@@ -6,6 +6,7 @@ import Project from "../models/project.model.js";
 
 const createTask = asyncHandler(async (req, res) => {
   const {
+    name,
     title,
     description,
     projectId,
@@ -14,6 +15,7 @@ const createTask = asyncHandler(async (req, res) => {
     status,
     deadline,
   } = req.body;
+  const userId = req.user._id;
 
   const lastTask = await Task.findOne({ project: projectId })
     .sort("-order")
@@ -22,9 +24,10 @@ const createTask = asyncHandler(async (req, res) => {
   const order = lastTask ? lastTask.order + 1 : 0;
 
   const task = await Task.create({
-    title,
+    name: name || title,
     description,
     project: projectId,
+    createdBy: userId,
     assignee: assigneeId,
     priority,
     status,
@@ -32,15 +35,31 @@ const createTask = asyncHandler(async (req, res) => {
     order,
   });
 
+  await Project.findByIdAndUpdate(projectId, {
+    $addToSet: { tasks: task._id },
+  });
+
   return res
     .status(201)
     .json(new ApiResponse(201, "Task created successfully", task));
 });
 
-const getTasks = asyncHandler(async (req, res) => {
+const getAllTasks = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const tasks = await Task.find({ createdBy: userId })
+    .populate("assignee", "name email")
+    .populate("project", "name")
+    .lean();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Tasks retrieved successfully", tasks));
+});
+
+const getTasksByProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
   const tasks = await Task.find({ project: projectId })
+    .sort("order")
     .populate("assignee", "name email")
     .lean();
 
@@ -135,7 +154,7 @@ const removeComment = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Comment removed successfully"));
+    .json(new ApiResponse(200, "Comment removed successfully", null));
 });
 
 const reorderTasks = asyncHandler(async (req, res) => {
@@ -153,7 +172,7 @@ const reorderTasks = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Tasks reordered successfully"));
+    .json(new ApiResponse(200, "Tasks reordered successfully", null));
 });
 
 const deleteTask = asyncHandler(async (req, res) => {
@@ -178,8 +197,9 @@ const deleteTask = asyncHandler(async (req, res) => {
 
 export {
   createTask,
+  getAllTasks,
   getTaskById,
-  getTasks,
+  getTasksByProject,
   updateTask,
   deleteTask,
   addComment,

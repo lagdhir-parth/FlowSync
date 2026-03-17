@@ -42,16 +42,27 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 const getAllProjects = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const projects = await Project.find({ members: userId })
+    .populate("members", "name email")
+    // .populate("tasks")
+    .lean();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Projects retrieved successfully", projects));
+});
+
+const getProjectsByWorkspace = asyncHandler(async (req, res) => {
   const { workspaceId } = req.params || {};
 
   const projects = await Project.find({
     workspace: workspaceId,
-    members: userId,
   })
     .populate("members", "name email")
-    // .populate("tasks")
+    .populate("tasks")
+    .populate("workspace", "name")
     .lean();
-  // FIXME: populate tasks
 
   res
     .status(200)
@@ -64,9 +75,10 @@ const getProjectById = asyncHandler(async (req, res) => {
 
   const project = await Project.findOne({ _id: projectId, members: userId })
     .populate("members", "name email")
-    // .populate("tasks")
+    .populate("tasks")
+    .populate("workspace", "name")
+    .populate("projectManager", "name email")
     .lean();
-  // FIXME: populate tasks
 
   if (!project) {
     res.status(404);
@@ -76,6 +88,33 @@ const getProjectById = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, "Project retrieved successfully", project));
+});
+
+const getProjectMembers = asyncHandler(async (req, res) => {
+  const { projectId } = req.params || {};
+  const userId = req.user._id;
+
+  const project = await Project.findOne({
+    _id: projectId,
+    members: userId,
+  })
+    .populate("members", "name email")
+    .lean();
+
+  if (!project) {
+    res.status(404);
+    throw new ApiError(404, "Project not found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "Project members retrieved successfully",
+        project.members,
+      ),
+    );
 });
 
 const updateProject = asyncHandler(async (req, res) => {
@@ -90,7 +129,10 @@ const updateProject = asyncHandler(async (req, res) => {
       new: true,
       validateBeforeSave: false,
     },
-  );
+  )
+    .populate("members", "name email")
+    .populate("workspace", "name")
+    .lean();
 
   if (!project) {
     res.status(404);
@@ -236,7 +278,9 @@ const deleteProject = asyncHandler(async (req, res) => {
 export {
   createProject,
   getAllProjects,
+  getProjectsByWorkspace,
   getProjectById,
+  getProjectMembers,
   updateProject,
   inviteMembers,
   removeMember,
