@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import TaskTable from "../../../components/app/task/TaskTable";
-import { fetchWorkspaceMembers } from "../../../api/dataApi";
+import { fetchProjectMembers } from "../../../api/dataApi";
 import { useParams } from "react-router-dom";
 import ProjecListViewHeader from "../../../components/app/project/ProjecListViewHeader";
 import AddTaskForm from "../../../components/app/task/AddTaskForm";
+import { useAuth } from "../../../context/AuthContext";
+
+const getEntityId = (entity) =>
+  typeof entity === "object" ? entity?._id || entity?.id : entity;
 
 const ProjectList = ({ project, setProject, tasks = [], onTasksChange }) => {
   const [members, setMembers] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const { projectId } = useParams();
+  const { user } = useAuth();
+  const isProjectManager =
+    getEntityId(project?.projectManager) === getEntityId(user);
 
   const columns = useMemo(
     () => [
@@ -27,7 +33,7 @@ const ProjectList = ({ project, setProject, tasks = [], onTasksChange }) => {
       {
         accessorKey: "assignee",
         header: "Assignee",
-        editable: true,
+        editable: isProjectManager,
         type: "member",
         options: members,
       },
@@ -45,7 +51,7 @@ const ProjectList = ({ project, setProject, tasks = [], onTasksChange }) => {
         options: ["low", "medium", "high"],
       },
     ],
-    [members],
+    [isProjectManager, members],
   );
 
   const handleTaskCreated = (task) => {
@@ -57,16 +63,12 @@ const ProjectList = ({ project, setProject, tasks = [], onTasksChange }) => {
   };
 
   useEffect(() => {
-    if (!project?.workspace) return;
-    const workspaceId =
-      typeof project.workspace === "object"
-        ? project.workspace._id
-        : project.workspace;
+    if (!project) return;
 
-    fetchWorkspaceMembers(workspaceId)
+    fetchProjectMembers(project._id)
       .then((data) => setMembers(data ?? []))
-      .catch((err) => console.error("Error fetching workspace members:", err));
-  }, [project?.workspace]);
+      .catch((err) => console.error("Error fetching project members:", err));
+  }, [project]);
 
   return (
     <div>
@@ -74,7 +76,7 @@ const ProjectList = ({ project, setProject, tasks = [], onTasksChange }) => {
 
       {showForm && (
         <AddTaskForm
-          projectId={projectId}
+          projectId={project._id}
           onClose={() => setShowForm(false)}
           onTaskCreated={handleTaskCreated}
         />

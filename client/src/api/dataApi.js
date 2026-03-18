@@ -13,6 +13,20 @@ const fetchAllUsers = async () => {
 };
 
 // Project APIs
+
+const createProject = async (workspaceId, projectData) => {
+  try {
+    const response = await api.post(
+      `/projects/${workspaceId}/create`,
+      projectData,
+    );
+    return response.data?.data; // Return the created project data
+  } catch (error) {
+    console.error("Error creating project:", error);
+    throw error;
+  }
+};
+
 const fetchAllProjects = async () => {
   try {
     const response = await api.get("/projects/");
@@ -86,6 +100,16 @@ const removeMemberFromProject = async (projectId, memberEmail) => {
   }
 };
 
+const deleteProject = async (projectId) => {
+  try {
+    const response = await api.delete(`/projects/${projectId}`);
+    return response.data; // Return the response from the server
+  } catch (error) {
+    console.error(`Error deleting project with ID ${projectId}:`, error);
+    throw error;
+  }
+};
+
 // Workspace APIs
 const fetchAllWorkspaces = async () => {
   try {
@@ -153,6 +177,29 @@ const removeMemberFromWorkspace = async (workspaceId, memberEmail) => {
   }
 };
 
+const fetchProjectsByWorkspace = async (workspaceId) => {
+  try {
+    const response = await api.get(`/projects/${workspaceId}/all`);
+    return response.data?.data;
+  } catch (error) {
+    console.error(
+      `Error fetching projects for workspace ${workspaceId}:`,
+      error,
+    );
+    throw error;
+  }
+};
+
+const deleteWorkspace = async (workspaceId) => {
+  try {
+    const response = await api.delete(`/workspaces/${workspaceId}`);
+    return response.data; // Return the response from the server
+  } catch (error) {
+    console.error(`Error deleting workspace with ID ${workspaceId}:`, error);
+    throw error;
+  }
+};
+
 // Task APIs
 const fetchAllTasks = async () => {
   try {
@@ -167,7 +214,6 @@ const fetchAllTasks = async () => {
 const fetchTasksByProjectId = async (projectId) => {
   try {
     const response = await api.get(`/tasks/project/${projectId}`);
-    console.log("Tasks fetched for project:", projectId, response.data?.data);
     return response.data?.data; // Return the tasks data
   } catch (error) {
     console.error(
@@ -206,7 +252,9 @@ const updateTask = async (taskId, updates) => {
 
 const deleteTask = async (projectId, taskId) => {
   try {
-    const response = await api.delete(`/tasks/${projectId}/delete-task/${taskId}`);
+    const response = await api.delete(
+      `/tasks/${projectId}/delete-task/${taskId}`,
+    );
     return response.data;
   } catch (error) {
     console.error(`Error deleting task with ID ${taskId}:`, error);
@@ -222,9 +270,11 @@ export {
   updateProject,
   addMemberToProject,
   removeMemberFromProject,
+  deleteProject,
   fetchAllWorkspaces,
   fetchWorkspaceById,
   fetchWorkspaceMembers,
+  fetchProjectsByWorkspace,
   addMemberToWorkspace,
   removeMemberFromWorkspace,
   fetchAllTasks,
@@ -232,4 +282,6 @@ export {
   reorderTasks,
   updateTask,
   deleteTask,
+  deleteWorkspace,
+  createProject,
 };

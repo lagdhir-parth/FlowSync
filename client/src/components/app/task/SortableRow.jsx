@@ -97,10 +97,23 @@ function SortableRow({ task, columns, onCellEdit, onDeleteTask }) {
                 </button>
               )}
 
-              <span className="flex-1">
-                {typeof column.cell === "function"
-                  ? column.cell(task)
-                  : String(value ?? "-")}
+              <span className="flex-1 text-sm">
+                {typeof column.cell === "function" ? (
+                  column.cell(task)
+                ) : column.type === "member" ? (
+                  value?.name ? (
+                    <span className="inline-flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-semibold uppercase shrink-0">
+                        {value.name[0]}
+                      </span>
+                      <span className="truncate">{value.name}</span>
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">Unassigned</span>
+                  )
+                ) : (
+                  String(value ?? "-")
+                )}
               </span>
 
               {index === columns.length - 1 && (

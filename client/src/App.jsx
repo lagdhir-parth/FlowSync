@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.jsx";
+import VoiceAssistant from "./components/VoiceAssistant.jsx";
 
 const Landing = React.lazy(() => import("./pages/Landing"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      {/* <VoiceAssistant /> */}
     </BrowserRouter>
   );
 }

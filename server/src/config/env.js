@@ -7,6 +7,8 @@ const requiredEnvVars = [
   "MONGODB_URI",
   "DB_NAME",
   "ALLOWED_ORIGINS",
+  "OPENROUTER_API_KEY",
+  "SARVAM_API_KEY",
   "ACCESS_TOKEN_SECRET",
   "ACCESS_TOKEN_EXPIRY",
   "REFRESH_TOKEN_SECRET",
@@ -32,6 +34,8 @@ const env = {
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS.split(",").map((origin) =>
     origin.trim(),
   ),
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  SARVAM_API_KEY: process.env.SARVAM_API_KEY,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,

@@ -6,7 +6,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { deleteTask, reorderTasks, updateTask } from "../../../api/dataApi";
 import useOptimisticTasks from "../../../hooks/useOptimisticTasks";
@@ -25,8 +25,7 @@ const getTaskId = (task) => task?._id || task?.id;
 
 function TaskTable({ data, columns, onTasksChange }) {
   const { projectId } = useParams();
-  const { tasks, setTasks, updateTaskLocal, removeTaskLocal, revertTasks } =
-    useOptimisticTasks(data);
+  const { tasks, setTasks, revertTasks } = useOptimisticTasks(data);
   const dragMetaRef = useRef(null);
 
   const sensors = useSensors(
@@ -56,11 +55,17 @@ function TaskTable({ data, columns, onTasksChange }) {
     return grouped;
   }, [tasks]);
 
-  useEffect(() => {
-    if (tasks !== data) {
-      onTasksChange?.(tasks);
-    }
-  }, [tasks, data, onTasksChange]);
+  const syncTasks = (nextTasksOrUpdater) => {
+    setTasks((previous) => {
+      const nextTasks =
+        typeof nextTasksOrUpdater === "function"
+          ? nextTasksOrUpdater(previous)
+          : nextTasksOrUpdater;
+
+      onTasksChange?.(nextTasks);
+      return nextTasks;
+    });
+  };
 
   const applyGlobalOrder = (items) =>
     items.map((task, index) => ({
@@ -157,18 +162,24 @@ function TaskTable({ data, columns, onTasksChange }) {
 
   const onDeleteTask = async (taskId) => {
     const previousTasks = [...tasks];
-    removeTaskLocal(taskId);
+    syncTasks((prev) => prev.filter((task) => getTaskId(task) !== taskId));
+
     try {
       await deleteTask(projectId, taskId);
     } catch (error) {
       console.error("Failed to delete task:", error);
       revertTasks(previousTasks);
+      onTasksChange?.(previousTasks);
     }
   };
 
   const onCellEdit = async (taskId, field, value) => {
     const previousTasks = [...tasks];
-    updateTaskLocal(taskId, { [field]: value });
+    syncTasks((prev) =>
+      prev.map((task) =>
+        getTaskId(task) === taskId ? { ...task, [field]: value } : task,
+      ),
+    );
 
     // For assignee, the value is the full populated member object;
     // the API only accepts the _id string.
@@ -182,6 +193,7 @@ function TaskTable({ data, columns, onTasksChange }) {
     } catch (error) {
       console.error("Failed to update task field:", error);
       revertTasks(previousTasks);
+      onTasksChange?.(previousTasks);
     }
   };
 
@@ -222,6 +234,7 @@ function TaskTable({ data, columns, onTasksChange }) {
 
     if (!over) {
       revertTasks(dragMeta.previousTasks);
+      onTasksChange?.(dragMeta.previousTasks);
       dragMetaRef.current = null;
       return;
     }
@@ -238,12 +251,15 @@ function TaskTable({ data, columns, onTasksChange }) {
 
     if (!activeTaskAfterDrop) {
       revertTasks(dragMeta.previousTasks);
+      onTasksChange?.(dragMeta.previousTasks);
       dragMetaRef.current = null;
       return;
     }
 
     if (nextTasks !== currentTasks) {
-      setTasks(nextTasks);
+      syncTasks(nextTasks);
+    } else if (hasChanges) {
+      onTasksChange?.(currentTasks);
     }
 
     if (!hasChanges && nextTasks === currentTasks) {
@@ -261,6 +277,7 @@ function TaskTable({ data, columns, onTasksChange }) {
     } catch (error) {
       console.error("Failed to persist drag-and-drop change:", error);
       revertTasks(dragMeta.previousTasks);
+      onTasksChange?.(dragMeta.previousTasks);
     }
 
     dragMetaRef.current = null;
@@ -270,6 +287,7 @@ function TaskTable({ data, columns, onTasksChange }) {
     const dragMeta = dragMetaRef.current;
     if (dragMeta) {
       revertTasks(dragMeta.previousTasks);
+      onTasksChange?.(dragMeta.previousTasks);
     }
     dragMetaRef.current = null;
   }

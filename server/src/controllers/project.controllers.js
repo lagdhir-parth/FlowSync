@@ -45,7 +45,9 @@ const getAllProjects = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const projects = await Project.find({ members: userId })
     .populate("members", "name email")
-    // .populate("tasks")
+    .populate("tasks")
+    .populate("workspace", "name")
+    .populate("projectManager", "name email")
     .lean();
 
   return res

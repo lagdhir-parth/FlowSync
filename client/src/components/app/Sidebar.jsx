@@ -6,17 +6,23 @@ import {
   TbFolderOpen,
   TbUser,
   TbCalendar,
+  TbSettings,
 } from "react-icons/tb";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchAllProjects, fetchAllWorkspaces } from "../../api/dataApi";
+import { VOICE_COMMAND_EXECUTED_EVENT } from "../../ai/voiceAssistant";
+import { FiLogOut } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Sidebar({ open }) {
   const location = useLocation();
   const [openAccordion, setOpenAccordion] = useState(null);
   const [projects, setProjects] = useState([]);
   const [workspaces, setWorkspaces] = useState([]);
+
+  const { logoutUser } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +39,34 @@ export default function Sidebar({ open }) {
       }
     };
 
+    const onVoiceCommandExecuted = (event) => {
+      const action = event?.detail?.action || {};
+      const actionType = action?.action;
+
+      const shouldRefreshSidebarData = [
+        "create_project",
+        "create_workspace",
+      ].includes(actionType);
+
+      if (!shouldRefreshSidebarData) {
+        return;
+      }
+
+      fetchData();
+    };
+
     fetchData();
+
+    window.addEventListener(
+      VOICE_COMMAND_EXECUTED_EVENT,
+      onVoiceCommandExecuted,
+    );
+    return () => {
+      window.removeEventListener(
+        VOICE_COMMAND_EXECUTED_EVENT,
+        onVoiceCommandExecuted,
+      );
+    };
   }, []);
 
   const topLinks = [
@@ -52,12 +85,13 @@ export default function Sidebar({ open }) {
   ];
 
   const bottomLinks = [
-    { name: "Settings", path: "/app/settings", icon: TbUser },
+    { name: "Profile", path: "/app/profile", icon: TbUser },
+    { name: "Settings", path: "/app/settings", icon: TbSettings },
   ];
 
   return (
     <aside
-      className={`border-r border-[#1E2535] bg-[#0F172A] transition-all duration-300
+      className={`relative border-r border-[#1E2535] bg-[#0F172A] transition-all duration-300
       ${open ? "w-64" : "w-16 hidden sm:block"}`}
     >
       <nav className="p-3 flex flex-col gap-2">
@@ -126,7 +160,9 @@ export default function Sidebar({ open }) {
                       className={`flex items-center gap-1 rounded-lg ${active ? "bg-indigo-500/20" : "hover:bg-[#272e3f]"} hover:opacity-100 opacity-0 transition-opacity duration-200`}
                     >
                       <motion.div
-                        animate={{ rotate: openAccordion === name ? 180 : 0 }}
+                        animate={{
+                          rotate: openAccordion === name ? 180 : 0,
+                        }}
                         transition={{ duration: 0.2 }}
                       >
                         <RiArrowDropDownLine className="size-8 text-[#9CA3AF]" />
@@ -161,6 +197,20 @@ export default function Sidebar({ open }) {
             </Link>
           );
         })}
+
+        <button
+          onClick={() => logoutUser()}
+          className={
+            "absolute bottom-5 flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 justify-center hover:bg-red-500 cursor-pointer group"
+          }
+        >
+          <FiLogOut className="w-5 h-5 shrink-0 text-red-400 group-hover:text-gray-100 transition-colors duration-200" />
+          {open && (
+            <span className="text-red-400 group-hover:text-gray-100 transition-colors duration-200">
+              Logout
+            </span>
+          )}
+        </button>
       </nav>
     </aside>
   );
@@ -200,7 +250,7 @@ const Accordion = ({ open, parentName, projects, workspaces }) => {
                   exit={{ x: -10, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer transition-colors duration-200
-    ${active ? "bg-indigo-500/20 text-indigo-400" : "hover:bg-[#1E2535]"}`}
+                  ${active ? "bg-indigo-500/20 text-indigo-400" : "hover:bg-[#1E2535]"}`}
                 >
                   <div className="size-2 bg-indigo-500 rounded-full" />
                   <span className="truncate">{item.name}</span>

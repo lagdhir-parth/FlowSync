@@ -9,6 +9,10 @@ import {
   FiPlus,
 } from "react-icons/fi";
 import EditMember from "../../../components/app/EditMember";
+import { useAuth } from "../../../context/AuthContext";
+
+const getEntityId = (entity) =>
+  typeof entity === "object" ? entity?._id || entity?.id : entity;
 
 const container = {
   hidden: { opacity: 0 },
@@ -23,7 +27,11 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-const StatCard = ({ icon, label, value, editable, onAdd }) => {
+const StatCard = ({ icon, label, value, editable, onAdd, project }) => {
+  const { user } = useAuth();
+  const isProjectManager =
+    getEntityId(project?.projectManager) === getEntityId(user);
+
   return (
     <motion.div
       variants={item}
@@ -37,7 +45,7 @@ const StatCard = ({ icon, label, value, editable, onAdd }) => {
           <p className="text-white text-lg font-semibold">{value}</p>
         </div>
         <div className="text-gray-400 text-sm cursor-pointer">
-          {editable ? (
+          {editable && isProjectManager ? (
             <div
               className="flex justify-center items-center p-3 rounded-lg  hover:bg-gray-700 hover:text-gray-200 transition-colors duration-200"
               onClick={onAdd}
@@ -53,7 +61,7 @@ const StatCard = ({ icon, label, value, editable, onAdd }) => {
   );
 };
 
-const ProjectOverview = ({ project }) => {
+const ProjectOverview = ({ project, tasks = [] }) => {
   if (!project) {
     return (
       <div className="text-gray-400 text-sm">Loading project overview...</div>
@@ -62,7 +70,16 @@ const ProjectOverview = ({ project }) => {
 
   const [showEditMember, setShowEditMember] = useState(false);
   const [members, setMembers] = useState(project.members || []);
-  const [tasks, setTasks] = useState(project.tasks || []);
+
+  useEffect(() => {
+    setMembers(project.members || []);
+  }, [project.members]);
+
+  const taskCount = Array.isArray(tasks)
+    ? tasks.length
+    : Array.isArray(project.tasks)
+      ? project.tasks.length
+      : 0;
 
   return (
     <motion.div
@@ -78,12 +95,13 @@ const ProjectOverview = ({ project }) => {
           label="Members"
           value={members.length}
           editable
+          project={project}
           onAdd={() => {
             setShowEditMember(true);
           }}
         />
 
-        <StatCard icon={<FiCheckSquare />} label="Tasks" value={tasks.length} />
+        <StatCard icon={<FiCheckSquare />} label="Tasks" value={taskCount} />
 
         <StatCard
           icon={<FiUser />}

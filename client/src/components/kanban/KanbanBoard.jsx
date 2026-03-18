@@ -7,7 +7,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { reorderTasks, updateTask, deleteTask } from "../../api/dataApi";
 import useOptimisticTasks from "../../hooks/useOptimisticTasks";
@@ -141,20 +141,21 @@ function KanbanBoard({ tasks: incomingTasks = [], onTasksChange }) {
     [tasks, activeTaskId],
   );
 
-  useEffect(() => {
-    if (tasks !== incomingTasks) {
-      onTasksChange?.(tasks);
-    }
-  }, [tasks, incomingTasks, onTasksChange]);
-
   const handleDeleteTask = async (taskId) => {
     const previousTasks = [...tasks];
     removeTaskLocal(taskId);
+    onTasksChange?.((prev) =>
+      (Array.isArray(prev) ? prev : []).filter(
+        (task) => getTaskId(task) !== taskId,
+      ),
+    );
+
     try {
       await deleteTask(projectId, taskId);
     } catch (error) {
       console.error("Failed to delete task:", error);
       revertTasks(previousTasks);
+      onTasksChange?.(previousTasks);
     }
   };
 
@@ -229,6 +230,8 @@ function KanbanBoard({ tasks: incomingTasks = [], onTasksChange }) {
 
     if (nextTasks !== currentTasks) {
       syncTasks(nextTasks);
+    } else if (hasChanges) {
+      onTasksChange?.(currentTasks);
     }
 
     if (!hasChanges && nextTasks === currentTasks) {

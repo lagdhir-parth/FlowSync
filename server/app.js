@@ -17,9 +17,11 @@ app.use(
   cors({
     origin: env.ALLOWED_ORIGINS,
     credentials: true,
+    exposedHeaders: ["X-Voice-Command", "X-Voice-Action"],
   }),
 );
 app.use(helmet());
+// FIXME: Enable rate limiting
 // app.use(
 //   rateLimit({
 //     windowMs: 15 * 60 * 1000,
@@ -30,8 +32,8 @@ app.use(helmet());
 //   })
 // );
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 app.use(express.static("public"));
 
 // Routes
@@ -40,7 +42,9 @@ import userRouter from "./src/routes/user.routes.js";
 import taskRouter from "./src/routes/task.routes.js";
 import projectRouter from "./src/routes/project.routes.js";
 import workspaceRouter from "./src/routes/workspace.routes.js";
+import aiRouter from "./src/routes/ai.routes.js";
 
+app.use("/api/ai", aiRouter); // Make sure this is before other routes to avoid conflicts
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/tasks", taskRouter);
@@ -50,6 +54,13 @@ app.use("/api/workspaces", workspaceRouter);
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("❌ Global error:", err.stack || err.message);
+
+  if (err?.type === "entity.too.large" || err?.status === 413) {
+    return res.status(413).json({
+      success: false,
+      message: "Voice payload is too large. Please record a shorter command.",
+    });
+  }
 
   // ✅ Handle your ApiError
   if (err.name === "ApiError") {
