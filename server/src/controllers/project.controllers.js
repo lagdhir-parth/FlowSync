@@ -262,6 +262,8 @@ const deleteProject = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Workspace not found");
   }
 
+  await Task.deleteMany({ project: projectId });
+
   if (project.projectManager.equals(userId) || workspace.owner.equals(userId)) {
     await Project.findByIdAndDelete(projectId);
   } else {

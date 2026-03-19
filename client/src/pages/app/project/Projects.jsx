@@ -136,6 +136,13 @@ const Projects = () => {
           Create your first project using the voice assistant or from a
           workspace.
         </p>
+        <div className="text-sm my-1">
+          <AddProjectButton
+            showAddProjectForm={showAddProjectForm}
+            setShowAddProjectForm={setShowAddProjectForm}
+            handleOptimisticProject={handleOptimisticProject}
+          />
+        </div>
       </div>
     );
   }
@@ -149,19 +156,11 @@ const Projects = () => {
             {projects.length} project{projects.length !== 1 ? "s" : ""}
           </span>
         </div>
-        <button
-          onClick={() => setShowAddProjectForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-gray-100 rounded-lg hover:bg-indigo-500 transition-colors cursor-pointer"
-        >
-          <FiPlus className="size-5" />
-          <span>Add Project</span>
-        </button>
-        {showAddProjectForm && (
-          <AddProjectForm
-            onProjectCreate={handleOptimisticProject}
-            setShowAddProjectForm={setShowAddProjectForm}
-          />
-        )}
+        <AddProjectButton
+          showAddProjectForm={showAddProjectForm}
+          setShowAddProjectForm={setShowAddProjectForm}
+          handleOptimisticProject={handleOptimisticProject}
+        />
       </div>
 
       <motion.div
@@ -242,5 +241,29 @@ const Projects = () => {
     </div>
   );
 };
+
+const AddProjectButton = ({
+  showAddProjectForm,
+  setShowAddProjectForm,
+  handleOptimisticProject,
+}) => (
+  <div>
+    <button
+      onClick={() => setShowAddProjectForm(true)}
+      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-gray-100 rounded-lg hover:bg-indigo-500 transition-colors cursor-pointer"
+    >
+      <FiPlus />
+      New Project
+    </button>
+
+    {showAddProjectForm && (
+      <AddProjectForm
+        onClose={() => setShowAddProjectForm(false)}
+        setShowAddProjectForm={setShowAddProjectForm}
+        handleOptimisticProject={handleOptimisticProject}
+      />
+    )}
+  </div>
+);
 
 export default Projects;

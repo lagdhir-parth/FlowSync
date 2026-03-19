@@ -7,14 +7,17 @@ import {
   FiCheckSquare,
   FiUser,
   FiArrowLeft,
+  FiPlus,
 } from "react-icons/fi";
 import {
   fetchWorkspaceById,
   fetchProjectsByWorkspace,
   fetchWorkspaceMembers,
+  fetchAllUsers,
 } from "../../../api/dataApi";
 import { VOICE_COMMAND_EXECUTED_EVENT } from "../../../ai/voiceAssistant";
 import { useAuth } from "../../../context/AuthContext";
+import EditMember from "../../../components/app/EditMember";
 
 const statusColors = {
   active: {
@@ -50,30 +53,34 @@ const WorkspaceDetails = () => {
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [projects, setProjects] = useState([]);
-  const [currentUserData, setCurrentUserData] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEditMembers, setShowEditMembers] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
 
   const { user } = useAuth();
 
   const loadData = async () => {
     try {
-      const [wsData, projData, memberData, currentUserData] = await Promise.all(
-        [
-          fetchWorkspaceById(workspaceId),
-          fetchProjectsByWorkspace(workspaceId),
-          fetchWorkspaceMembers(workspaceId),
-        ],
-      );
+      const [wsData, projData, memberData, allUsersData] = await Promise.all([
+        fetchWorkspaceById(workspaceId),
+        fetchProjectsByWorkspace(workspaceId),
+        fetchWorkspaceMembers(workspaceId),
+        fetchAllUsers(), // To get current user details for permission checks in EditMember
+      ]);
       setWorkspace(wsData);
       setProjects(projData || []);
       setMembers(memberData || []);
+      setAllUsers(allUsersData || []);
     } catch (err) {
       console.error("Failed to load workspace details:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  const isWorkspaceOwner =
+    workspace?.owner?._id === user?._id || workspace?.owner === user?._id;
 
   useEffect(() => {
     loadData();
@@ -159,15 +166,41 @@ const WorkspaceDetails = () => {
 
         <motion.div
           variants={item}
-          className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 flex items-center gap-4"
+          className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 flex justify-between items-center gap-4"
         >
-          <div className="text-indigo-400 text-2xl">
-            <FiUsers />
+          <div className="flex items-center gap-4">
+            <div className="text-indigo-400 text-2xl">
+              <FiUsers />
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Members</p>
+              <p className="text-white text-lg font-semibold">
+                {members.length}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-400 text-sm">Members</p>
-            <p className="text-white text-lg font-semibold">{members.length}</p>
+          <div className="text-gray-400 text-sm cursor-pointer">
+            {isWorkspaceOwner ? (
+              <div
+                className="flex justify-center items-center p-3 rounded-lg  hover:bg-gray-700 hover:text-gray-200 transition-colors duration-200"
+                onClick={() => setShowEditMembers(true)}
+              >
+                <FiPlus className="size-6 text-gray-400 text-sm" />
+              </div>
+            ) : (
+              ""
+            )}
           </div>
+          {showEditMembers && (
+            <EditMember
+              type="workspace"
+              workspaceId={workspace._id}
+              setMembers={setMembers}
+              onClose={() => {
+                setShowEditMembers(false);
+              }}
+            />
+          )}
         </motion.div>
 
         <motion.div

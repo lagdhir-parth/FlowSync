@@ -111,6 +111,17 @@ const deleteProject = async (projectId) => {
 };
 
 // Workspace APIs
+
+const createWorkspace = async (workspaceData) => {
+  try {
+    const response = await api.post("/workspaces/", workspaceData);
+    return response.data?.data; // Return the created workspace data
+  } catch (error) {
+    console.error("Error creating workspace:", error);
+    throw error;
+  }
+};
+
 const fetchAllWorkspaces = async () => {
   try {
     const response = await api.get("/workspaces/");
@@ -284,4 +295,5 @@ export {
   deleteTask,
   deleteWorkspace,
   createProject,
+  createWorkspace,
 };

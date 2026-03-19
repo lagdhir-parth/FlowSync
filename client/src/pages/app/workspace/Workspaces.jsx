@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiGrid, FiUsers, FiFolder, FiCalendar } from "react-icons/fi";
+import { FiGrid, FiUsers, FiFolder, FiCalendar, FiPlus } from "react-icons/fi";
 import { deleteWorkspace, fetchAllWorkspaces } from "../../../api/dataApi";
 import { VOICE_COMMAND_EXECUTED_EVENT } from "../../../ai/voiceAssistant";
 import { useAuth } from "../../../context/AuthContext";
 import { TbTrash } from "react-icons/tb";
+import AddWorkspaceForm from "../../../components/app/AddWorkspaceForm";
 
 const container = {
   hidden: { opacity: 0 },
@@ -31,6 +32,7 @@ const formatDate = (dateStr) => {
 const Workspaces = () => {
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddWorkspaceForm, setShowAddWorkspaceForm] = useState(false);
 
   const { user } = useAuth();
 
@@ -67,6 +69,27 @@ const Workspaces = () => {
     }
   };
 
+  const handleOptimisticWorkspace = (newWorkspace, tempId = null) => {
+    setWorkspaces((prev) => {
+      // Replace temp with real
+      if (tempId && newWorkspace) {
+        return prev.map((ws) => (ws._id === tempId ? newWorkspace : ws));
+      }
+
+      // Rollback
+      if (tempId && !newWorkspace) {
+        return prev.filter((ws) => ws._id !== tempId);
+      }
+
+      // Add new
+      if (newWorkspace) {
+        return [newWorkspace, ...prev];
+      }
+
+      return prev;
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-400">
@@ -83,6 +106,13 @@ const Workspaces = () => {
         <p className="text-gray-500 text-sm">
           Create your first workspace using the voice assistant.
         </p>
+        <div className="text-sm my-1">
+          <AddWorkspaceButton
+            showAddWorkspaceForm={showAddWorkspaceForm}
+            setShowAddWorkspaceForm={setShowAddWorkspaceForm}
+            handleOptimisticWorkspace={handleOptimisticWorkspace}
+          />
+        </div>
       </div>
     );
   }
@@ -90,10 +120,17 @@ const Workspaces = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-100">Workspaces</h1>
-        <span className="text-sm text-gray-400">
-          {workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""}
-        </span>
+        <div className="flex flex-col items-start gap-1">
+          <h1 className="text-2xl font-semibold text-gray-100">Workspaces</h1>
+          <span className="text-sm text-gray-400">
+            {workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <AddWorkspaceButton
+          showAddWorkspaceForm={showAddWorkspaceForm}
+          setShowAddWorkspaceForm={setShowAddWorkspaceForm}
+          handleOptimisticWorkspace={handleOptimisticWorkspace}
+        />
       </div>
 
       <motion.div
@@ -157,5 +194,27 @@ const Workspaces = () => {
     </div>
   );
 };
+
+const AddWorkspaceButton = ({
+  showAddWorkspaceForm,
+  setShowAddWorkspaceForm,
+  handleOptimisticWorkspace,
+}) => (
+  <div>
+    <button
+      onClick={() => setShowAddWorkspaceForm(true)}
+      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-gray-100 rounded-lg hover:bg-indigo-500 transition-colors cursor-pointer"
+    >
+      <FiPlus className="inline-block mr-1" />
+      New Workspace
+    </button>
+    {showAddWorkspaceForm && (
+      <AddWorkspaceForm
+        setShowAddWorkspaceForm={setShowAddWorkspaceForm}
+        onWorkspaceCreate={handleOptimisticWorkspace}
+      />
+    )}
+  </div>
+);
 
 export default Workspaces;
