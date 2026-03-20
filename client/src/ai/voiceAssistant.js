@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+import api from "../api/axios";
 
 export const VOICE_COMMAND_EXECUTED_EVENT = "flowsync:voice-command-executed";
 
@@ -48,7 +47,7 @@ export const sendVoiceCommand = async (audioBlob, context = {}) => {
 
   const audioBase64 = await blobToBase64(audioBlob);
 
-  const response = await fetch(`${API_BASE_URL}/api/ai/voice-command`, {
+  const response = await fetch(`${api.defaults.baseURL}/ai/voice-command`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
