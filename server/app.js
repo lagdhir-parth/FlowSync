@@ -7,6 +7,10 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 const app = express();
+
+// Trust proxy stringly recommended and sometimes required for rate limiting behind reverse proxies (like Render)
+app.set("trust proxy", 1);
+
 app.use(compression()); // to compress response bodies for all request that traverse through the middleware
 
 app.get("/health", (_, res) => {
