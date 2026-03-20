@@ -3,6 +3,7 @@ import verifyJWT from "../middlewares/verifyToken.middleware.js";
 import {
   registerUser,
   loginUser,
+  googleLogin,
   refreshAccessToken,
   logoutUser,
   currentUser,
@@ -17,6 +18,7 @@ const router = Router();
 
 router.post("/register", validateRegistrationRequest, registerUser);
 router.post("/login", validateLoginRequest, loginUser);
+router.post("/google", googleLogin);
 router.post(
   "/refreshAccessToken",
   validateRefreshAccessTokenRequest,

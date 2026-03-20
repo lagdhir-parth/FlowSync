@@ -5,6 +5,9 @@ import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
 import env from "../config/env.js";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 const cookieOptions = {
   httpOnly: true,
@@ -150,4 +153,63 @@ const currentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Current user fetched successfully", user));
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken, currentUser };
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body || {};
+
+  if (!credential) {
+    throw new ApiError(400, "Google credential is required");
+  }
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken: credential,
+    audience: env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  const { email, name, picture, sub: googleId } = payload;
+
+  if (!email) {
+    throw new ApiError(400, "Google account does not have an email");
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    const username = email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "_");
+
+    let uniqueUsername = username;
+    let counter = 1;
+    while (await User.findOne({ username: uniqueUsername })) {
+      uniqueUsername = `${username}_${counter}`;
+      counter++;
+    }
+
+    user = await User.create({
+      name: name || email.split("@")[0],
+      username: uniqueUsername,
+      email,
+      avatarUrl: picture || null,
+      authProvider: "google",
+    });
+  }
+
+  const { accessToken, refreshToken } = await generateTokens(user._id);
+
+  const loggedInUser = user.toObject();
+  delete loggedInUser.password;
+  delete loggedInUser.refreshToken;
+
+  res
+    .status(200)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .json(
+      new ApiResponse(200, "Google login successful", {
+        accessToken,
+        refreshToken,
+        loggedInUser,
+      }),
+    );
+});
+
+export { registerUser, loginUser, googleLogin, logoutUser, refreshAccessToken, currentUser };

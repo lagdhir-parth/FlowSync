@@ -43,13 +43,18 @@ import taskRouter from "./src/routes/task.routes.js";
 import projectRouter from "./src/routes/project.routes.js";
 import workspaceRouter from "./src/routes/workspace.routes.js";
 import aiRouter from "./src/routes/ai.routes.js";
+import statsRouter from "./src/routes/stats.routes.js";
+import chatBotRouter from "./src/routes/chatbot.routes.js";
 
 app.use("/api/ai", aiRouter); // Make sure this is before other routes to avoid conflicts
+app.use("/api/chat", chatBotRouter); // Make sure this is before other routes to avoid conflicts
+
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/workspaces", workspaceRouter);
+app.use("/api/stats", statsRouter);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

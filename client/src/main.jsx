@@ -4,13 +4,18 @@ import App from "./App.jsx";
 import "./index.css";
 import AuthProvider from "./context/AuthContext.jsx";
 import { ToastProvider } from "./context/ToastProvider.jsx";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   </React.StrictMode>,
 );

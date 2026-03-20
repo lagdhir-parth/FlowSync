@@ -22,12 +22,18 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.authProvider === "local";
+      },
     },
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
-      required: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
     },
     avatarUrl: {
       type: String,
@@ -46,7 +52,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
 
   try {
     const salt = await bcrypt.genSalt(10);

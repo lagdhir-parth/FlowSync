@@ -14,6 +14,11 @@ import {
 
 const tabs = ["add", "remove"];
 
+const getMemberIdentifier = (member) => ({
+  email: member?.email,
+  username: member?.username,
+});
+
 const EditMember = ({ type, workspaceId, projectId, onClose, setMembers }) => {
   const [activeTab, setActiveTab] = useState("add");
 
@@ -85,19 +90,21 @@ const EditMember = ({ type, workspaceId, projectId, onClose, setMembers }) => {
     }
   }, [type, workspaceMembers, projectMembers, dataLoaded]);
 
-  const handleAdd = async (email) => {
+  const handleAdd = async (member) => {
     try {
       setLoading(true);
 
+      const memberIdentifier = getMemberIdentifier(member);
+
       let updated;
       if (type === "workspace") {
-        await addMemberToWorkspace(workspaceId, email);
+        await addMemberToWorkspace(workspaceId, memberIdentifier);
         updated = await fetchWorkspaceMembers(workspaceId);
         setWorkspaceMembers(updated);
       }
 
       if (type === "project") {
-        await addMemberToProject(projectId, email);
+        await addMemberToProject(projectId, memberIdentifier);
         updated = await fetchProjectMembers(projectId);
         setProjectMembers(updated);
       }
@@ -110,20 +117,22 @@ const EditMember = ({ type, workspaceId, projectId, onClose, setMembers }) => {
     }
   };
 
-  const handleRemove = async (email) => {
+  const handleRemove = async (member) => {
     try {
       setLoading(true);
+
+      const memberIdentifier = getMemberIdentifier(member);
 
       let updated;
 
       if (type === "project") {
-        await removeMemberFromProject(projectId, email);
+        await removeMemberFromProject(projectId, memberIdentifier);
         updated = await fetchProjectMembers(projectId);
         setProjectMembers(updated);
       }
 
       if (type === "workspace") {
-        await removeMemberFromWorkspace(workspaceId, email);
+        await removeMemberFromWorkspace(workspaceId, memberIdentifier);
         updated = await fetchWorkspaceMembers(workspaceId);
         setWorkspaceMembers(updated);
       }
@@ -195,12 +204,15 @@ const EditMember = ({ type, workspaceId, projectId, onClose, setMembers }) => {
                     >
                       <div>
                         <p className="text-sm text-white">{member.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {member.username}
+                        </p>
                         <p className="text-xs text-gray-400">{member.email}</p>
                       </div>
 
                       <button
                         disabled={loading}
-                        onClick={() => handleAdd(member.email)}
+                        onClick={() => handleAdd(member)}
                         className="flex items-center gap-1 text-sm bg-indigo-500 hover:bg-indigo-600 px-2 py-1 rounded"
                       >
                         <FiUserPlus />
@@ -225,12 +237,15 @@ const EditMember = ({ type, workspaceId, projectId, onClose, setMembers }) => {
                     >
                       <div>
                         <p className="text-sm text-white">{member.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {member.username}
+                        </p>
                         <p className="text-xs text-gray-400">{member.email}</p>
                       </div>
 
                       <button
                         disabled={loading}
-                        onClick={() => handleRemove(member.email)}
+                        onClick={() => handleRemove(member)}
                         className="flex items-center gap-1 text-sm bg-red-500 hover:bg-red-600 px-2 py-1 rounded"
                       >
                         <FiUserMinus />

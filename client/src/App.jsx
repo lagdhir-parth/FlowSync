@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import React, { Suspense } from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.jsx";
-import VoiceAssistant from "./components/VoiceAssistant.jsx";
 
 const Landing = React.lazy(() => import("./pages/Landing"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -21,6 +20,8 @@ const ProjectDetails = React.lazy(
 const WorkspaceDetails = React.lazy(
   () => import("./pages/app/workspace/WorkspaceDetails.jsx"),
 );
+const Profile = React.lazy(() => import("./pages/app/Profile.jsx"));
+const Settings = React.lazy(() => import("./pages/app/Settings.jsx"));
 
 export default function App() {
   return (
@@ -37,6 +38,8 @@ export default function App() {
               <Route path="projects" element={<Projects />} />
               <Route path="my-tasks" element={<Tasks />} />
               <Route path="workspaces" element={<Workspaces />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
               <Route
                 path="/app/projects/:projectId"
                 element={<ProjectDetails />}
@@ -51,7 +54,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-      {/* <VoiceAssistant /> */}
     </BrowserRouter>
   );
 }

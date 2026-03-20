@@ -6,6 +6,7 @@ import {
 } from "../ai/voiceAssistant";
 
 const VoiceAssistant = () => {
+  const [open, setOpen] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | recording | processing
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState("");
@@ -119,6 +120,13 @@ const VoiceAssistant = () => {
     }
   };
 
+  const handleToggle = () => {
+    if (isRecording) {
+      stopRecording();
+    }
+    setOpen((prev) => !prev);
+  };
+
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
   const statusLabel = isProcessing
@@ -128,51 +136,75 @@ const VoiceAssistant = () => {
       : "Ready";
 
   return (
-    <div className="fixed bottom-5 right-5 z-1000 w-[min(92vw,26rem)] rounded-2xl border border-slate-700/80 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-100">Voice Assistant</p>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-            isProcessing
-              ? "bg-amber-500/20 text-amber-300"
-              : isRecording
-                ? "bg-red-500/20 text-red-300"
-                : "bg-emerald-500/20 text-emerald-300"
-          }`}
+    <div className="relative flex items-end justify-end">
+      {open && (
+        <div
+          id="voice-assistant-panel"
+          className="mb-3 w-[min(92vw,26rem)] rounded-2xl border border-[#263149] bg-[#0F172A]/95 p-4 shadow-2xl backdrop-blur-sm"
         >
-          {statusLabel}
-        </span>
-      </div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-100">
+              Voice Assistant
+            </p>
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                isProcessing
+                  ? "bg-amber-500/20 text-amber-300"
+                  : isRecording
+                    ? "bg-red-500/20 text-red-300"
+                    : "bg-emerald-500/20 text-emerald-300"
+              }`}
+            >
+              {statusLabel}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={isProcessing}
+            className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70 ${
+              isRecording
+                ? "bg-red-600 hover:bg-red-500"
+                : "bg-indigo-600 hover:bg-indigo-500"
+            } ${isProcessing ? "bg-slate-500 hover:bg-slate-500" : ""}`}
+          >
+            {isRecording
+              ? "⏹ Stop Recording"
+              : isProcessing
+                ? "⏳ Processing..."
+                : "🎤 Start Recording"}
+          </button>
+
+          {transcript && (
+            <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
+              <p className="text-xs font-medium text-emerald-300">Recognized</p>
+              <p className="mt-1 text-sm text-emerald-200">"{transcript}"</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
+              <p className="text-sm text-red-300">❌ {error}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <button
         type="button"
-        onClick={isRecording ? stopRecording : startRecording}
-        disabled={isProcessing}
-        className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70 ${
-          isRecording
-            ? "bg-red-600 hover:bg-red-500"
+        onClick={handleToggle}
+        className={`h-14 w-14 rounded-full border border-[#2D3A56] text-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+          open
+            ? "bg-[#1F2A44] hover:bg-[#24314F]"
             : "bg-indigo-600 hover:bg-indigo-500"
-        } ${isProcessing ? "bg-slate-500 hover:bg-slate-500" : ""}`}
+        }`}
+        aria-label={open ? "Close Voice Assistant" : "Open Voice Assistant"}
+        aria-expanded={open}
+        aria-controls="voice-assistant-panel"
       >
-        {isRecording
-          ? "⏹ Stop Recording"
-          : isProcessing
-            ? "⏳ Processing..."
-            : "🎤 Start Recording"}
+        {open ? "✕" : "🎤"}
       </button>
-
-      {transcript && (
-        <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
-          <p className="text-xs font-medium text-emerald-300">Recognized</p>
-          <p className="mt-1 text-sm text-emerald-200">"{transcript}"</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-          <p className="text-sm text-red-300">❌ {error}</p>
-        </div>
-      )}
     </div>
   );
 };

@@ -127,10 +127,22 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (credential) => {
+    const { data } = await api.post("/auth/google", { credential });
+    const tokensData = {
+      accessToken: data.data.accessToken,
+      refreshToken: data.data.refreshToken,
+    };
+    localStorage.setItem("tokens", JSON.stringify(tokensData));
+    sessionStorage.removeItem("tokens");
+    setTokens(tokensData);
+  };
+
   const value = {
     user,
     tokens,
     loginUser,
+    googleLogin,
     registerUser,
     logoutUser,
     refreshUser,

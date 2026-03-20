@@ -1,5 +1,22 @@
 import api from "./axios";
 
+const buildMemberIdentifierPayload = (memberIdentifier) => {
+  if (typeof memberIdentifier === "string") {
+    return memberIdentifier.includes("@")
+      ? { email: memberIdentifier }
+      : { username: memberIdentifier };
+  }
+
+  if (memberIdentifier && typeof memberIdentifier === "object") {
+    const payload = {};
+    if (memberIdentifier.email) payload.email = memberIdentifier.email;
+    if (memberIdentifier.username) payload.username = memberIdentifier.username;
+    return payload;
+  }
+
+  return {};
+};
+
 // User APIs
 
 const fetchAllUsers = async () => {
@@ -70,11 +87,12 @@ const updateProject = async (projectId, updates) => {
   }
 };
 
-const addMemberToProject = async (projectId, memberEmail) => {
+const addMemberToProject = async (projectId, memberIdentifier) => {
   try {
-    const response = await api.patch(`/projects/${projectId}/invite`, {
-      email: memberEmail,
-    });
+    const response = await api.patch(
+      `/projects/${projectId}/invite`,
+      buildMemberIdentifierPayload(memberIdentifier),
+    );
     return response.data?.data; // Return the updated project data
   } catch (error) {
     console.error(
@@ -85,11 +103,12 @@ const addMemberToProject = async (projectId, memberEmail) => {
   }
 };
 
-const removeMemberFromProject = async (projectId, memberEmail) => {
+const removeMemberFromProject = async (projectId, memberIdentifier) => {
   try {
-    const response = await api.patch(`/projects/${projectId}/remove-member`, {
-      email: memberEmail,
-    });
+    const response = await api.patch(
+      `/projects/${projectId}/remove-member`,
+      buildMemberIdentifierPayload(memberIdentifier),
+    );
     return response.data?.data; // Return the updated project data
   } catch (error) {
     console.error(
@@ -155,11 +174,12 @@ const fetchWorkspaceMembers = async (workspaceId) => {
   }
 };
 
-const addMemberToWorkspace = async (workspaceId, memberEmail) => {
+const addMemberToWorkspace = async (workspaceId, memberIdentifier) => {
   try {
-    const response = await api.patch(`/workspaces/${workspaceId}/invite`, {
-      email: memberEmail,
-    });
+    const response = await api.patch(
+      `/workspaces/${workspaceId}/invite`,
+      buildMemberIdentifierPayload(memberIdentifier),
+    );
     return response.data?.data; // Return the updated workspace data
   } catch (error) {
     console.error(
@@ -170,13 +190,11 @@ const addMemberToWorkspace = async (workspaceId, memberEmail) => {
   }
 };
 
-const removeMemberFromWorkspace = async (workspaceId, memberEmail) => {
+const removeMemberFromWorkspace = async (workspaceId, memberIdentifier) => {
   try {
     const response = await api.patch(
       `/workspaces/${workspaceId}/remove-member`,
-      {
-        email: memberEmail,
-      },
+      buildMemberIdentifierPayload(memberIdentifier),
     );
     return response.data?.data; // Return the updated workspace data
   } catch (error) {
@@ -273,6 +291,49 @@ const deleteTask = async (projectId, taskId) => {
   }
 };
 
+// Dashboard Stats API
+const fetchDashboardStats = async () => {
+  try {
+    const response = await api.get("/stats/dashboard");
+    return response.data?.data;
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    throw error;
+  }
+};
+
+// User Profile APIs
+const updateProfile = async (data) => {
+  try {
+    const response = await api.patch("/users/updateProfile", data);
+    return response.data?.data;
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw error;
+  }
+};
+
+const updatePassword = async (data) => {
+  try {
+    const response = await api.patch("/users/updatePassword", data);
+    return response.data?.data;
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw error;
+  }
+};
+
+// Chatbot API
+const sendChatMessage = async (message, history = [], context = {}) => {
+  try {
+    const response = await api.post("/chat", { message, history, context });
+    return response.data?.data;
+  } catch (error) {
+    console.error("Error sending chat message:", error);
+    throw error;
+  }
+};
+
 export {
   fetchAllUsers,
   fetchAllProjects,
@@ -296,4 +357,8 @@ export {
   deleteWorkspace,
   createProject,
   createWorkspace,
+  fetchDashboardStats,
+  updateProfile,
+  updatePassword,
+  sendChatMessage,
 };

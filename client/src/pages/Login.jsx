@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbUser, TbLock, TbArrowRight, TbSparkles } from "react-icons/tb";
+import { GoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../components/auth/AuthLayout";
 import {
   InputField,
@@ -28,7 +29,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const { loginUser } = useAuth();
+  const { loginUser, googleLogin } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,6 +37,20 @@ export default function Login() {
   const handleChange = (e) => {
     setError("");
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError("");
+    try {
+      await googleLogin(credentialResponse.credential);
+      setSuccess(true);
+      const from = location.state?.from?.pathname || "/app";
+      setTimeout(() => navigate(from, { replace: true }), 800);
+    } catch (err) {
+      setError(err.message || "Google login failed");
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -157,6 +172,18 @@ export default function Login() {
           <div className="flex-1 h-px bg-[#1E2535]" />
           <span className="text-xs text-[#374151]">OR</span>
           <div className="flex-1 h-px bg-[#1E2535]" />
+        </motion.div>
+
+        <motion.div variants={FIELD_ITEM} className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("Google sign-in failed. Please try again.")}
+            theme="filled_black"
+            shape="pill"
+            size="large"
+            text="continue_with"
+            width="100%"
+          />
         </motion.div>
 
         <motion.p

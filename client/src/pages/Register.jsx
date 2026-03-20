@@ -12,6 +12,7 @@ import {
   TbSparkles,
   TbCheck,
 } from "react-icons/tb";
+import { GoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../components/auth/AuthLayout";
 import {
   InputField,
@@ -130,7 +131,7 @@ export default function Register() {
   const [success, setSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const { registerUser } = useAuth();
+  const { registerUser, googleLogin } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -153,6 +154,19 @@ export default function Register() {
       errs.password = "Password must be at least 8 characters";
     if (!form.gender) errs.gender = "Please select your gender";
     return errs;
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError("");
+    try {
+      await googleLogin(credentialResponse.credential);
+      setSuccess(true);
+      setTimeout(() => navigate("/app", { replace: true }), 800);
+    } catch (err) {
+      setError(err.message || "Google sign-up failed");
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -319,6 +333,27 @@ export default function Register() {
               <TbArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
             )}
           </SubmitButton>
+        </motion.div>
+
+        <motion.div
+          variants={FIELD_ITEM}
+          className="relative flex items-center gap-3 my-1"
+        >
+          <div className="flex-1 h-px bg-[#1E2535]" />
+          <span className="text-xs text-[#374151]">OR</span>
+          <div className="flex-1 h-px bg-[#1E2535]" />
+        </motion.div>
+
+        <motion.div variants={FIELD_ITEM} className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("Google sign-up failed. Please try again.")}
+            theme="filled_black"
+            shape="pill"
+            size="large"
+            text="signup_with"
+            width="100%"
+          />
         </motion.div>
 
         <motion.p

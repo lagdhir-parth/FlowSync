@@ -97,16 +97,16 @@ const validateUpdateProject = (req, res, next) => {
 
 const validateUpdateMembers = (req, res, next) => {
   const { projectId } = req.params || {};
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
 
   if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
     res.status(400);
     throw new ApiError(400, "Valid projectId is required");
   }
 
-  if (!email) {
+  if (!email && !username) {
     res.status(400);
-    throw new ApiError(400, "Email is required to update members");
+    throw new ApiError(400, "Email or username is required to update members");
   }
   next();
 };

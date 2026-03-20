@@ -13,6 +13,7 @@ const requiredEnvVars = [
   "ACCESS_TOKEN_EXPIRY",
   "REFRESH_TOKEN_SECRET",
   "REFRESH_TOKEN_EXPIRY",
+  "GOOGLE_CLIENT_ID",
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -40,6 +41,7 @@ const env = {
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 };
 
 export default env;

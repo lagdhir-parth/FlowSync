@@ -60,11 +60,11 @@ const validateUpdateWorkspace = (req, res, next) => {
 
 const validateUpdateMember = (req, res, next) => {
   const { id } = req.params;
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
 
-  if (!email) {
+  if (!email && !username) {
     res.status(400);
-    throw new ApiError(400, "User email is required");
+    throw new ApiError(400, "User email or username is required");
   }
 
   if (!id) {

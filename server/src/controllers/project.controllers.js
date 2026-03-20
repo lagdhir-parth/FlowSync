@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
+import Task from "../models/task.model.js";
 import Workspace from "../models/workspace.model.js";
 
 const createProject = asyncHandler(async (req, res) => {
@@ -44,7 +45,7 @@ const createProject = asyncHandler(async (req, res) => {
 const getAllProjects = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const projects = await Project.find({ members: userId })
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .populate("tasks")
     .populate("workspace", "name")
     .populate("projectManager", "name email")
@@ -61,7 +62,7 @@ const getProjectsByWorkspace = asyncHandler(async (req, res) => {
   const projects = await Project.find({
     workspace: workspaceId,
   })
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .populate("tasks")
     .populate("workspace", "name")
     .lean();
@@ -76,7 +77,7 @@ const getProjectById = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const project = await Project.findOne({ _id: projectId, members: userId })
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .populate("tasks")
     .populate("workspace", "name")
     .populate("projectManager", "name email")
@@ -100,7 +101,7 @@ const getProjectMembers = asyncHandler(async (req, res) => {
     _id: projectId,
     members: userId,
   })
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .lean();
 
   if (!project) {
@@ -132,7 +133,7 @@ const updateProject = asyncHandler(async (req, res) => {
       validateBeforeSave: false,
     },
   )
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .populate("workspace", "name")
     .lean();
 
@@ -151,14 +152,19 @@ const updateProject = asyncHandler(async (req, res) => {
 
 const inviteMembers = asyncHandler(async (req, res) => {
   const { projectId } = req.params || {};
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
   const userId = req.user._id;
 
-  const userToInvite = await User.findOne({ email });
+  const userToInvite = await User.findOne({
+    $or: [{ email }, { username }],
+  });
 
   if (!userToInvite) {
     res.status(404);
-    throw new ApiError(404, "User with the provided email not found");
+    throw new ApiError(
+      404,
+      "User with the provided email or username not found",
+    );
   }
 
   const project = await Project.findById(projectId);
@@ -202,14 +208,19 @@ const inviteMembers = asyncHandler(async (req, res) => {
 
 const removeMember = asyncHandler(async (req, res) => {
   const { projectId } = req.params || {};
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
   const userId = req.user._id;
 
-  const userToRemove = await User.findOne({ email });
+  const userToRemove = await User.findOne({
+    $or: [{ email }, { username }],
+  });
 
   if (!userToRemove) {
     res.status(404);
-    throw new ApiError(404, "User with the provided email not found");
+    throw new ApiError(
+      404,
+      "User with the provided email or username not found",
+    );
   }
 
   const project = await Project.findById(projectId);

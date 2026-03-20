@@ -67,7 +67,7 @@ const getWorkspaceMembers = asyncHandler(async (req, res) => {
     _id: id,
     members: userId,
   })
-    .populate("members", "name email")
+    .populate("members", "name username email")
     .lean();
 
   if (!workspace) {
@@ -119,11 +119,11 @@ const updateWorkspace = asyncHandler(async (req, res) => {
 
 const inviteMember = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
   const userId = req.user._id;
 
   const user = await User.findOneAndUpdate(
-    { email },
+    { $or: [{ email }, { username }] },
     { $addToSet: { workspaces: id } },
     { new: true, validateBeforeSave: false },
   );
@@ -163,11 +163,11 @@ const inviteMember = asyncHandler(async (req, res) => {
 
 const removeMember = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { email } = req.body || {};
+  const { email, username } = req.body || {};
   const userId = req.user._id;
 
   const userToRemove = await User.findOneAndUpdate(
-    { email },
+    { $or: [{ email }, { username }] },
     { $pull: { workspaces: id } },
     { new: true, validateBeforeSave: false },
   );

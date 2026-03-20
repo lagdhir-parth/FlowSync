@@ -2,7 +2,7 @@ import axios from "axios";
 import env from "../config/env.js";
 
 const SARVAM_STT_URL =
-  process.env.SARVAM_STT_URL || "https://api.sarvam.ai/speech-to-text";
+  env.SARVAM_STT_URL || "https://api.sarvam.ai/speech-to-text";
 
 const createHeaders = () => ({
   "api-subscription-key": env.SARVAM_API_KEY,
@@ -121,7 +121,7 @@ export const transcribeAudio = async (audioBase64, mimeType = "audio/webm") => {
       fileName,
     );
     form.append("model", modelName);
-    form.append("language_code", process.env.SARVAM_STT_LANG || "en-IN");
+    form.append("language_code", env.SARVAM_STT_LANG || "en-IN");
 
     return axios.post(SARVAM_STT_URL, form, {
       timeout: 30_000,
@@ -131,7 +131,7 @@ export const transcribeAudio = async (audioBase64, mimeType = "audio/webm") => {
     });
   };
 
-  const primaryModel = process.env.SARVAM_STT_MODEL || "saarika:v2.5";
+  const primaryModel = env.SARVAM_STT_MODEL || "saarika:v2.5";
 
   let lastError;
   try {
