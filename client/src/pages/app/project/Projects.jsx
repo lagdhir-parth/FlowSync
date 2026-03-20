@@ -68,7 +68,7 @@ const Projects = () => {
     loadProjects();
 
     const onVoiceCommand = (e) => {
-      const action = e?.detail?.action?.action;
+      const action = e?.detail?.action?.intent;
       if (action === "create_project") loadProjects();
     };
 

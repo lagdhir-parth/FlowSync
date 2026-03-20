@@ -68,7 +68,7 @@ const MyTasks = () => {
     loadTasks();
 
     const onVoiceCommand = (e) => {
-      const action = e?.detail?.action?.action;
+      const action = e?.detail?.action?.intent;
       if (
         ["create_task", "update_task", "delete_task", "move_task"].includes(
           action,

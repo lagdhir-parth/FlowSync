@@ -51,7 +51,7 @@ const Workspaces = () => {
     loadWorkspaces();
 
     const onVoiceCommand = (e) => {
-      const action = e?.detail?.action?.action;
+      const action = e?.detail?.action?.intent;
       if (action === "create_workspace") loadWorkspaces();
     };
 

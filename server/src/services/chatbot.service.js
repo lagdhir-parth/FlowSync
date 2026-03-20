@@ -2,21 +2,17 @@ import { openrouter } from "../config/openrouter.js";
 import Task from "../models/task.model.js";
 import Project from "../models/project.model.js";
 
-const SYSTEM_PROMPT = `You are FlowSync AI — a friendly productivity coach integrated into a project management app.
+const SYSTEM_PROMPT = `You are a Senior Productivity Coach and AI Assistant for "FlowSync", a task management application.
 
-Your role:
-- Help users plan tasks, organize projects, and boost productivity.
-- Answer project-related and productivity questions clearly and concisely.
-- When asked to suggest tasks, provide structured, actionable steps.
-- If the user provides context about their tasks/projects, reference it naturally.
-- Keep responses brief but helpful. Use markdown formatting (bullets, bold) for clarity.
-- Do NOT execute actions — only suggest and advise. The voice assistant handles actions.
-- Remove any AI disclaimers and focus on being a helpful assistant.
-- Always maintain a friendly and encouraging tone, even when providing constructive feedback.
-- If you don't know the answer, say "I'm not sure, but I'm here to help you figure it out!" instead of making something up.
-- Remove extra spaces and newlines from your responses. Be concise and to the point.
+🧠 CORE BEHAVIORS & RULES:
+1. Help users plan tasks, organize projects, and boost productivity.
+2. Provide step-by-step, actionable plans. If asked to break down a project, structure the response clearly with bullet points.
+3. DOMAIN KNOWLEDGE: FlowSync handles Workspaces > Projects > Tasks. Tasks have status (\`todo\`, \`in progress\`, \`review\`, \`done\`), priorities (\`low\`, \`medium\`, \`high\`). Use this exact terminology.
+4. FALLBACK & CLARIFICATION: If a request is vague or you don't know the answer, explicitly ask clarifying questions. NEVER hallucinate tasks or data you cannot see in the context string.
+5. FORMATTING: Use markdown (lists, bold text) generously. When dealing with complex logic or multiple steps, use structured lists. Return JSON blocks if explicitly requested by the user. Do not include unnecessary conversational filler. Use concise formatting.
+6. NO ACTIONS: You are a chatbot. You CANNOT execute actions (e.g., creating tasks, adding members). Inform the user they can use the Voice Assistant for performing actions.
 
-Be conversational, professional, and encouraging.`;
+Maintain a professional, highly intelligent, and encouraging tone. Always speak as an expert systems thinker.`;
 
 /**
  * Build context string from user's data.
@@ -49,7 +45,7 @@ const buildContextString = async (userId) => {
         `Tasks — To Do: ${grouped.todo.join(", ") || "none"}, In Progress: ${grouped["in progress"].join(", ") || "none"}, Done: ${grouped.done.length} completed`,
       );
     }
-    return parts.length ? `\n\nUser's current data:\n${parts.join("\n")}` : "";
+    return parts.length ? `\n\n[CONTEXT: USER DATA]\n${parts.join("\n")}` : "";
   } catch {
     return "";
   }
@@ -70,16 +66,17 @@ export const chatWithAI = async (message, history = [], userId = null) => {
 
   const systemContent = SYSTEM_PROMPT + contextStr;
 
+  // Short term memory: retain last 15 interactions for context
   const messages = [
     { role: "system", content: systemContent },
-    ...history.slice(-10),
+    ...history.slice(-15),
     { role: "user", content: message },
   ];
 
   const response = await openrouter.post("/chat/completions", {
     model: "deepseek/deepseek-chat",
-    temperature: 0.7,
-    max_tokens: 500,
+    temperature: 0.3, // Lower temp for more structured, factual outputs
+    max_tokens: 800, // Token optimized but enough for step-by-step plans
     messages,
   });
 

@@ -14,6 +14,7 @@ const ChatBot = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const chatEndRef = useRef(null);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (open && chatEndRef.current) {
@@ -23,12 +24,15 @@ const ChatBot = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isSubmittingRef.current) return;
+    
+    isSubmittingRef.current = true;
     setError("");
     const newMessages = [...messages, { role: "user", content: input.trim() }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
+    
     try {
       const res = await sendChatMessage(input.trim(), newMessages);
       setMessages([
@@ -42,6 +46,7 @@ const ChatBot = () => {
       setError("Failed to get response. Please try again.");
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

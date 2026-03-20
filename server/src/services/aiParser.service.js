@@ -62,74 +62,49 @@ const extractJson = (raw) => {
 
 const SYSTEM_PROMPT = `You are an AI assistant for a task management app called FlowSync.
 
-Your job is to convert natural language commands into structured JSON actions.
+Your job is to convert natural language commands into structured JSON matching this EXACT schema:
+{
+  "intent": "<intent_name>",
+  "entities": {
+    "name": "<optional name snippet>",
+    "title": "<optional title snippet>",
+    "taskId": "<optional>",
+    "projectId": "<optional>",
+    "workspaceId": "<optional>",
+    "username": "<optional>",
+    "email": "<optional>",
+    "status": "<optional: todo|in progress|review|done>",
+    "priority": "<optional: low|medium|high>",
+    "deadline": "<optional ISO date>",
+    "updates": { } // used for update_task, update_project, update_workspace
+  }
+}
 
-Allowed actions and their JSON formats:
+Allowed intents:
+1. "create_task" (entities: name/title, description, status, priority)
+2. "update_task" (entities: name/title to find, updates: { name, description, priority, status, deadline, assignee })
+3. "delete_task" (entities: name/title)
+4. "move_task" (entities: name/title, status)
+5. "create_project" (entities: name, description)
+6. "update_project" (entities: name to find, updates: { name, description, status })
+7. "create_workspace" (entities: name)
+8. "update_workspace" (entities: name to find, updates: { name })
+9. "list_tasks" (no entities needed)
+10. "list_projects" (no entities needed)
+11. "add_member" (entities: email, username, target (project|workspace))
+12. "remove_member" (entities: email, username, target (project|workspace))
+13. "assign_member" (entities: name/title of task, username, email - assigning a task to someone)
+14. "show_summary" (no entities needed)
 
-1. create_task — Create a new task
-   { "action": "create_task", "title": "<task name>", "description": "<optional>", "status": "<optional: todo|in progress|review|done>", "priority": "<optional: low|medium|high>" }
-
-2. update_task — Update an existing task (rename, change description, priority, status, deadline)
-   { "action": "update_task", "name": "<current task name to find>", "updates": { "name": "<new name>", "description": "<new desc>", "priority": "<low|medium|high>", "status": "<todo|in progress|review|done>", "deadline": "<ISO date>" } }
-
-3. delete_task — Delete a task by name
-   { "action": "delete_task", "name": "<task name to delete>" }
-
-4. move_task — Move a task to a different status column
-   { "action": "move_task", "name": "<task name>", "status": "<todo|in progress|review|done>" }
-
-5. create_project — Create a new project
-   { "action": "create_project", "name": "<project name>", "description": "<optional>" }
-
-6. update_project — Update a project (rename, change description, status)
-   { "action": "update_project", "name": "<current project name>", "updates": { "name": "<new name>", "description": "<new desc>", "status": "<active|completed|archived|on hold|dropped>" } }
-
-7. create_workspace — Create a new workspace
-   { "action": "create_workspace", "name": "<workspace name>" }
-
-8. update_workspace — Rename a workspace
-   { "action": "update_workspace", "name": "<current workspace name>", "updates": { "name": "<new name>" } }
-
-9. list_tasks — List all tasks in the current project
-   { "action": "list_tasks" }
-
-10. list_projects — List all projects in the current workspace
-    { "action": "list_projects" }
-
-11. add_member — Add a member to project or workspace by email or username
-  { "action": "add_member", "email": "<user email>", "username": "<optional username>", "target": "<optional: project|workspace>" }
-
-12. remove_member — Remove a member from project or workspace by email or username
-  { "action": "remove_member", "email": "<user email>", "username": "<optional username>", "target": "<optional: project|workspace>" }
-
-13. show_summary — Show summary of current project or workspace
-    { "action": "show_summary" }
+Return ONLY valid JSON. No explanation. No extra text.
 
 Examples:
-- "Create task named Build auth system" → { "action": "create_task", "title": "Build auth system" }
-- "Move login task to done" → { "action": "move_task", "name": "login", "status": "done" }
-- "Rename task old name to new name" → { "action": "update_task", "name": "old name", "updates": { "name": "new name" } }
-- "Change priority of auth task to high" → { "action": "update_task", "name": "auth", "updates": { "priority": "high" } }
-- "Set deadline of payment task to 2025-04-01" → { "action": "update_task", "name": "payment", "updates": { "deadline": "2025-04-01" } }
-- "Delete the signup task" → { "action": "delete_task", "name": "signup" }
-- "Create project Mobile App" → { "action": "create_project", "name": "Mobile App" }
-- "Rename project Mobile App to Super App" → { "action": "update_project", "name": "Mobile App", "updates": { "name": "Super App" } }
-- "Mark project as completed" → { "action": "update_project", "name": "", "updates": { "status": "completed" } }
-- "Archive project Dashboard Redesign" → { "action": "update_project", "name": "Dashboard Redesign", "updates": { "status": "archived" } }
-- "Create workspace Startup" → { "action": "create_workspace", "name": "Startup" }
-- "Rename workspace Startup to My Startup" → { "action": "update_workspace", "name": "Startup", "updates": { "name": "My Startup" } }
-- "Show my tasks" → { "action": "list_tasks" }
-- "What tasks do I have?" → { "action": "list_tasks" }
-- "List my projects" → { "action": "list_projects" }
-- "Show all projects" → { "action": "list_projects" }
-- "Add john@example.com to the project" → { "action": "add_member", "email": "john@example.com", "target": "project" }
-- "Invite user alex_99 to workspace" → { "action": "add_member", "username": "alex_99", "target": "workspace" }
-- "Remove test@mail.com from this project" → { "action": "remove_member", "email": "test@mail.com", "target": "project" }
-- "Remove user alex_99 from workspace" → { "action": "remove_member", "username": "alex_99", "target": "workspace" }
-- "Give me a summary" → { "action": "show_summary" }
-- "What's the status?" → { "action": "show_summary" }
-
-Return ONLY valid JSON. No explanation. No extra text.`;
+- "Create task named Build auth system" → { "intent": "create_task", "entities": { "name": "Build auth system" } }
+- "Move login task to done" → { "intent": "move_task", "entities": { "name": "login", "status": "done" } }
+- "Rename task old name to new name" → { "intent": "update_task", "entities": { "name": "old name", "updates": { "name": "new name" } } }
+- "Assign login task to john" → { "intent": "assign_member", "entities": { "name": "login task", "username": "john" } }
+- "Add john@example.com to the project" → { "intent": "add_member", "entities": { "email": "john@example.com", "target": "project" } }
+- "What tasks do I have?" → { "intent": "list_tasks", "entities": {} }`;
 
 /**
  * Send user command to OpenRouter and get structured action JSON.
@@ -188,12 +163,26 @@ export const parseCommand = async (command, context = {}) => {
   }
 
   const content = response?.data?.choices?.[0]?.message?.content;
-  const action = extractJson(content);
+  const parsed = extractJson(content);
 
-  if (!action?.action || typeof action.action !== "string") {
-    throw new Error("AI response missing required 'action' field");
+  // Auto-correct older or malformed outputs to match { intent, entities }
+  let finalData = parsed;
+  if (!parsed?.intent || typeof parsed.intent !== "string") {
+    if (parsed?.action) {
+      finalData = {
+        intent: parsed.action,
+        entities: { ...parsed },
+      };
+      delete finalData.entities.action;
+    } else {
+      throw new Error("AI response missing required 'intent' field");
+    }
   }
 
-  console.log("[AI Parser] Parsed action:", JSON.stringify(action));
-  return action;
+  if (!finalData.entities) {
+    finalData.entities = {};
+  }
+
+  console.log("[AI Parser] Parsed intent module:", JSON.stringify(finalData));
+  return finalData;
 };

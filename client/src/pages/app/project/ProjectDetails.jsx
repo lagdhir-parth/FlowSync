@@ -87,7 +87,7 @@ const ProjectDetails = () => {
         "update_task",
         "delete_task",
         "move_task",
-      ].includes(action?.action);
+      ].includes(action?.intent);
 
       if (!shouldRefreshProjectTasks) {
         return;

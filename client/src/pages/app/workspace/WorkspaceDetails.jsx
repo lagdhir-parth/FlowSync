@@ -91,7 +91,7 @@ const WorkspaceDetails = () => {
     );
 
     const onVoiceCommand = (e) => {
-      const action = e?.detail?.action?.action;
+      const action = e?.detail?.action?.intent;
       if (["create_project", "create_workspace"].includes(action)) loadData();
     };
 

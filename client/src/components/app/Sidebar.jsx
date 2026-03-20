@@ -41,7 +41,7 @@ export default function Sidebar({ open }) {
 
     const onVoiceCommandExecuted = (event) => {
       const action = event?.detail?.action || {};
-      const actionType = action?.action;
+      const actionType = action?.intent;
 
       const shouldRefreshSidebarData = [
         "create_project",
