@@ -258,9 +258,8 @@ const AddProjectButton = ({
 
     {showAddProjectForm && (
       <AddProjectForm
-        onClose={() => setShowAddProjectForm(false)}
         setShowAddProjectForm={setShowAddProjectForm}
-        handleOptimisticProject={handleOptimisticProject}
+        onProjectCreate={handleOptimisticProject}
       />
     )}
   </div>

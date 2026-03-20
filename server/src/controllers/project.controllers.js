@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
 import Task from "../models/task.model.js";
 import Workspace from "../models/workspace.model.js";
+import { sendProjectInviteEmail } from "../services/email/email.service.js";
 
 const createProject = asyncHandler(async (req, res) => {
   const { workspaceId } = req.params || {};
@@ -200,6 +201,14 @@ const inviteMembers = asyncHandler(async (req, res) => {
   await Project.findByIdAndUpdate(projectId, {
     $addToSet: { members: userToInvite._id },
   });
+
+  // Fire-and-forget Project Invite Email
+  sendProjectInviteEmail(
+    userToInvite.email,
+    userToInvite.name || userToInvite.username,
+    project.name,
+    workspace.name
+  ).catch(console.error);
 
   res
     .status(200)

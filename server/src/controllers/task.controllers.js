@@ -3,6 +3,8 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import Task from "../models/task.model.js";
 import Project from "../models/project.model.js";
+import User from "../models/user.model.js";
+import { sendTaskAssignedEmail } from "../services/email/email.service.js";
 
 const createTask = asyncHandler(async (req, res) => {
   const {
@@ -38,6 +40,21 @@ const createTask = asyncHandler(async (req, res) => {
   await Project.findByIdAndUpdate(projectId, {
     $addToSet: { tasks: task._id },
   });
+
+  // Fire-and-forget Task Assignment Email
+  if (assigneeId) {
+    User.findById(assigneeId).then(async (assigneeUser) => {
+      if (assigneeUser) {
+        const projectDoc = await Project.findById(projectId).select("name");
+        sendTaskAssignedEmail(
+          assigneeUser.email,
+          assigneeUser.name || assigneeUser.username,
+          task.name,
+          projectDoc?.name
+        ).catch(console.error);
+      }
+    });
+  }
 
   return res
     .status(201)
@@ -96,12 +113,35 @@ const updateTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
   const updates = req.body;
 
+  let oldTask = null;
+  if (updates.assignee) {
+    oldTask = await Task.findById(taskId);
+  }
+
   const updatedTask = await Task.findByIdAndUpdate(taskId, updates, {
     new: true,
   })
     .populate("assignee", "name email")
     .populate("project", "name")
     .lean();
+
+  // Fire-and-forget Task Assignment Email
+  if (
+    updates.assignee &&
+    oldTask &&
+    String(oldTask.assignee) !== String(updates.assignee)
+  ) {
+    User.findById(updates.assignee).then((assigneeUser) => {
+      if (assigneeUser) {
+        sendTaskAssignedEmail(
+          assigneeUser.email,
+          assigneeUser.name || assigneeUser.username,
+          updatedTask.name,
+          updatedTask.project?.name
+        ).catch(console.error);
+      }
+    });
+  }
 
   return res
     .status(200)

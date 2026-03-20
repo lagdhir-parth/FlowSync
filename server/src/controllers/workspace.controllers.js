@@ -4,6 +4,7 @@ import ApiResponse from "../utils/apiResponse.js";
 import User from "../models/user.model.js";
 import Workspace from "../models/workspace.model.js";
 import Project from "../models/project.model.js";
+import { sendWorkspaceInviteEmail } from "../services/email/email.service.js";
 
 const createWorkspace = asyncHandler(async (req, res) => {
   const { name } = req.body || {};
@@ -155,6 +156,13 @@ const inviteMember = asyncHandler(async (req, res) => {
     { $addToSet: { members: user._id } },
     { new: true, validateBeforeSave: false },
   );
+
+  // Fire-and-forget Workspace Invite Email
+  sendWorkspaceInviteEmail(
+    user.email,
+    user.name || user.username,
+    workspace.name
+  ).catch(console.error);
 
   return res
     .status(200)

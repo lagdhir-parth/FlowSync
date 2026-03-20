@@ -42,6 +42,10 @@ const env = {
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+
+  // Optional variables for email logic
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM || "onboarding@resend.dev",
 };
 
 export default env;

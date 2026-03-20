@@ -6,6 +6,7 @@ import generateTokens from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
 import env from "../config/env.js";
 import { OAuth2Client } from "google-auth-library";
+import { sendWelcomeEmail } from "../services/email/email.service.js";
 
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
@@ -50,6 +51,11 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!createdUser) {
     throw new ApiError(500, "Error creating user");
   }
+
+  // Fire-and-forget Welcome Email
+  sendWelcomeEmail(createdUser.email, createdUser.name || createdUser.username).catch((err) =>
+    console.error("Welcome email failed", err)
+  );
 
   return res
     .status(201)
@@ -191,6 +197,11 @@ const googleLogin = asyncHandler(async (req, res) => {
       avatarUrl: picture || null,
       authProvider: "google",
     });
+
+    // Fire-and-forget Welcome Email
+    sendWelcomeEmail(user.email, user.name || user.username).catch((err) =>
+      console.error("Welcome email failed", err)
+    );
   }
 
   const { accessToken, refreshToken } = await generateTokens(user._id);

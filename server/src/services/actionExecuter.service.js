@@ -71,7 +71,7 @@ export const executeAction = async (parsedData, options = {}) => {
     if (!nameSnippet) return null;
     const task = await Task.findOne({
       project: projectId,
-      name: { $regex: new RegExp(`\\b${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}\\b`, "i") },
+      name: { $regex: new RegExp(`${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}`, "i") },
     });
     return task?._id;
   };
@@ -81,7 +81,7 @@ export const executeAction = async (parsedData, options = {}) => {
     const project = await Project.findOne({
       members: userId,
       ...(workspaceId ? { workspace: workspaceId } : {}),
-      name: { $regex: new RegExp(`\\b${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}\\b`, "i") },
+      name: { $regex: new RegExp(`${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}`, "i") },
     });
     return project?._id;
   };
@@ -90,7 +90,7 @@ export const executeAction = async (parsedData, options = {}) => {
     if (!nameSnippet) return null;
     const workspace = await Workspace.findOne({
       members: userId,
-      name: { $regex: new RegExp(`\\b${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}\\b`, "i") },
+      name: { $regex: new RegExp(`${nameSnippet.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&")}`, "i") },
     });
     return workspace?._id;
   };

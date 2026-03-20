@@ -9,6 +9,7 @@ const VoiceAssistant = () => {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | recording | processing
   const [transcript, setTranscript] = useState("");
+  const [ttsText, setTtsText] = useState("");
   const [error, setError] = useState("");
   const location = useLocation();
 
@@ -58,6 +59,7 @@ const VoiceAssistant = () => {
   const startRecording = async () => {
     setError("");
     setTranscript("");
+    setTtsText("");
 
     if (!navigator?.mediaDevices?.getUserMedia) {
       setError("Microphone not supported in this browser.");
@@ -91,12 +93,14 @@ const VoiceAssistant = () => {
               detail: {
                 transcript: result?.transcript || "",
                 action: result?.action || null,
+                ttsText: result?.ttsText || "",
                 context,
               },
             }),
           );
 
           setTranscript(result.transcript || "Command executed");
+          setTtsText(result?.ttsText || "");
         } catch (err) {
           setError(err.message || "Voice assistant failed");
         } finally {
@@ -180,6 +184,13 @@ const VoiceAssistant = () => {
             <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
               <p className="text-xs font-medium text-emerald-300">Recognized</p>
               <p className="mt-1 text-sm text-emerald-200">"{transcript}"</p>
+            </div>
+          )}
+
+          {ttsText && (
+            <div className="mt-3 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2">
+              <p className="text-xs font-medium text-sky-300">Assistant Said</p>
+              <p className="mt-1 text-sm text-sky-200">{ttsText}</p>
             </div>
           )}
 

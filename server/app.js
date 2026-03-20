@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: env.ALLOWED_ORIGINS,
     credentials: true,
-    exposedHeaders: ["X-Voice-Command", "X-Voice-Action"],
+    exposedHeaders: ["X-Voice-Command", "X-Voice-Action", "X-Voice-Reply"],
   }),
 );
 app.use(helmet());

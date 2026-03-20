@@ -26,6 +26,73 @@ const getAffordableMaxTokensFromMessage = (message = "") => {
 
 const requestCompletion = (payload) =>
   openrouter.post("/chat/completions", payload);
+
+const inferFallbackIntent = (command = "") => {
+  const input = String(command || "").trim();
+  const lower = input.toLowerCase();
+
+  const email = input.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
+  const atUsername = input.match(/@([a-z0-9_\.]+)/i)?.[1];
+  const userPhrase =
+    input.match(/(?:user(?:name)?\s+)([a-z0-9_\.]+)/i)?.[1] || atUsername;
+
+  const baseEntities = {
+    ...(email ? { email } : {}),
+    ...(userPhrase ? { username: userPhrase } : {}),
+    ...(lower.includes("workspace") ? { target: "workspace" } : {}),
+    ...(lower.includes("project") ? { target: "project" } : {}),
+  };
+
+  if (/\b(add|invite)\b/.test(lower)) {
+    return { intent: "add_member", entities: baseEntities };
+  }
+
+  if (/\b(remove|kick|delete member)\b/.test(lower)) {
+    return { intent: "remove_member", entities: baseEntities };
+  }
+
+  if (/\bcreate\b.*\btask\b|\bnew\b.*\btask\b/.test(lower)) {
+    return { intent: "create_task", entities: {} };
+  }
+
+  if (/\b(update|edit|rename|change)\b.*\btask\b/.test(lower)) {
+    return { intent: "update_task", entities: {} };
+  }
+
+  if (/\bdelete\b.*\btask\b/.test(lower)) {
+    return { intent: "delete_task", entities: {} };
+  }
+
+  if (/\bmove\b.*\btask\b/.test(lower)) {
+    return { intent: "move_task", entities: {} };
+  }
+
+  if (/\bcreate\b.*\bproject\b|\bnew\b.*\bproject\b/.test(lower)) {
+    return { intent: "create_project", entities: {} };
+  }
+
+  if (/\b(update|edit|rename|change)\b.*\bproject\b/.test(lower)) {
+    return { intent: "update_project", entities: {} };
+  }
+
+  if (/\bcreate\b.*\bworkspace\b|\bnew\b.*\bworkspace\b/.test(lower)) {
+    return { intent: "create_workspace", entities: {} };
+  }
+
+  if (/\b(update|edit|rename|change)\b.*\bworkspace\b/.test(lower)) {
+    return { intent: "update_workspace", entities: {} };
+  }
+
+  if (/\blist\b.*\btasks\b|\bmy tasks\b|\bwhat tasks\b/.test(lower)) {
+    return { intent: "list_tasks", entities: {} };
+  }
+
+  if (/\blist\b.*\bprojects\b|\bmy projects\b|\bshow projects\b/.test(lower)) {
+    return { intent: "list_projects", entities: {} };
+  }
+
+  return { intent: "show_summary", entities: {} };
+};
 /**
  * Try to extract a JSON object from the AI response text.
  * Handles raw JSON, markdown code fences, or embedded JSON.
@@ -165,23 +232,39 @@ export const parseCommand = async (command, context = {}) => {
   const content = response?.data?.choices?.[0]?.message?.content;
   const parsed = extractJson(content);
 
-  // Auto-correct older or malformed outputs to match { intent, entities }
+  // Normalize varied model outputs to { intent, entities } shape.
   let finalData = parsed;
-  if (!parsed?.intent || typeof parsed.intent !== "string") {
-    if (parsed?.action) {
-      finalData = {
-        intent: parsed.action,
-        entities: { ...parsed },
-      };
-      delete finalData.entities.action;
-    } else {
-      throw new Error("AI response missing required 'intent' field");
-    }
+  const intentCandidate =
+    parsed?.intent ||
+    parsed?.action ||
+    parsed?.type ||
+    parsed?.command ||
+    parsed?.entities?.intent ||
+    parsed?.data?.intent;
+
+  if (intentCandidate && typeof intentCandidate === "string") {
+    finalData = {
+      intent: intentCandidate,
+      entities:
+        parsed?.entities && typeof parsed.entities === "object"
+          ? parsed.entities
+          : { ...parsed },
+    };
+
+    delete finalData.entities.intent;
+    delete finalData.entities.action;
+    delete finalData.entities.type;
+    delete finalData.entities.command;
+  } else {
+    finalData = inferFallbackIntent(command);
   }
 
-  if (!finalData.entities) {
+  if (!finalData.entities || typeof finalData.entities !== "object") {
     finalData.entities = {};
   }
+
+  // Backward compatibility for any consumer still reading `action`.
+  finalData.action = finalData.intent;
 
   console.log("[AI Parser] Parsed intent module:", JSON.stringify(finalData));
   return finalData;

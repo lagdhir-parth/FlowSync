@@ -39,7 +39,7 @@ export const playAudioResponse = (arrayBuffer, contentType) => {
  * Send recorded audio to the backend voice assistant endpoint.
  * @param {Blob} audioBlob - Recorded audio blob
  * @param {object} context - { workspaceId, projectId }
- * @returns {Promise<{ transcript: string }>}
+ * @returns {Promise<{ transcript: string, action: object | null, ttsText: string, context: object }>}
  */
 export const sendVoiceCommand = async (audioBlob, context = {}) => {
   if (!audioBlob) {
@@ -66,6 +66,7 @@ export const sendVoiceCommand = async (audioBlob, context = {}) => {
 
   const transcript = response.headers.get("x-voice-command") || "";
   const encodedAction = response.headers.get("x-voice-action") || "";
+  const encodedReply = response.headers.get("x-voice-reply") || "";
   const contentType = response.headers.get("content-type") || "";
 
   let action = null;
@@ -77,11 +78,20 @@ export const sendVoiceCommand = async (audioBlob, context = {}) => {
     }
   }
 
+  let ttsText = "";
+  if (encodedReply) {
+    try {
+      ttsText = decodeURIComponent(encodedReply);
+    } catch {
+      ttsText = "";
+    }
+  }
+
   // If backend returned audio, play it
   if (contentType.includes("audio")) {
     const audioBuffer = await response.arrayBuffer();
     playAudioResponse(audioBuffer, contentType);
   }
 
-  return { transcript, action, context };
+  return { transcript, action, ttsText, context };
 };

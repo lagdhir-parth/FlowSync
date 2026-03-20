@@ -3,6 +3,19 @@ import { parseCommand } from "../services/aiParser.service.js";
 import { executeAction } from "../services/actionExecuter.service.js";
 import { generateSpeech } from "../services/tts.service.js";
 
+const MAX_TTS_HEADER_TEXT = 1200;
+
+const toSafeHeaderText = (value) => {
+  if (!value) return "";
+
+  const plainText = String(value)
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+
+  if (!plainText) return "";
+  return plainText.slice(0, MAX_TTS_HEADER_TEXT);
+};
+
 /**
  * Process a voice command end-to-end:
  * Audio → STT → AI Parse → Execute → TTS → Audio Response
@@ -31,6 +44,7 @@ export const processVoiceCommand = async (req, res) => {
 
     // Step 3: Execute the action
     const message = await executeAction(action, { actorId, context });
+    const safeTtsText = toSafeHeaderText(message);
 
     // Step 4: Convert response to speech
     const { audio, contentType } = await generateSpeech(message);
@@ -39,6 +53,7 @@ export const processVoiceCommand = async (req, res) => {
     res.set("Content-Type", contentType);
     res.set("X-Voice-Command", transcript);
     res.set("X-Voice-Action", encodeURIComponent(JSON.stringify(action)));
+    res.set("X-Voice-Reply", encodeURIComponent(safeTtsText));
     return res.send(audio);
   } catch (error) {
     const status = error?.response?.status;
